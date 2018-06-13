@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html style="height:100%">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+    <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../js/grid.locale-cn.js"></script>
+    <script type="text/javascript" src="../js/jquery.jqGrid.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/ui.jqgrid.css" />
+    <link rel="SHORTCUT ICON" href="../image/favicon.ico"/>
+<title>地图管理</title>
+<style>
+html,body {
+	font-size: 75%;
+}
+	.name1 {
+		display:block; 
+	    color:#fff; 
+	    font:13px/20px Georgia, "Times New Roman", Times, serif; text-decoration:none;
+	 }
+    .name2 {
+        color:#000; 
+        font:13px/20px Georgia, "Times New Roman", Times, serif; text-decoration:none;
+        background-color: #e3e1e2;
+     }
+</style>
+</head>
+<body>
+	<div> 
+	<table id="jqGridMap"></table>
+	<div id="jqGridPagerMap"></div>
+	</div>
+
+	<script type="text/javascript">
+		function GetQueryString(name) {
+		   var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+		   var r = window.location.search.substr(1).match(reg);
+		   if (r!=null) return (r[2]); return null;
+		}
+		var inputName = GetQueryString("name");
+	
+	 function validBeforeSubmit(postData, formid) {
+		 var qfield = $("#field").val();
+
+		 var field;
+		 
+		 $.ajax({
+   			 async: false,
+   			 type: "GET",
+			 url: "../FieldManager/doGet.do?name=" + qfield,
+   			 success: function(data) {
+ 				field = eval("(" + data + ")");
+ 				postData.field = field;
+   			 }
+	     });
+		 return [true,"success"];
+	 } 
+	 
+	 function refreshField(mode) {
+			var fieldSel = $("select#field");			
+			var qsn = snSelected;
+			
+			$.get("../FieldManager/doGet.do", function(str) {
+				fieldSel.empty();
+				fieldSel.append(str);
+		        	
+				if (mode == "edit" && qsn != undefined) {
+		        	$.get("../FieldManager/doGet.do?sn=" + qsn, function(str) {
+	        		    fieldSelected = str;
+	        		    fieldSel.val(fieldSelected);
+				    });
+		        }
+			});				
+		}
+		
+		
+		var fieldSelected;
+		var snSelected;
+		
+		function rowClicked(rowid, icol, cellCont) {
+			var rowData = $("#jqGridMap").jqGrid("getRowData",rowid);
+			snSelected = rowData.sn;
+			fieldSelected = rowData.field;
+		}
+		
+		
+    jQuery("#jqGridMap").jqGrid({
+    	url: "../GetMapInfo/doPost.do",
+        datatype: "json",
+        mtype:"POST",
+        height:"auto",
+        autowidth: true,  
+        colNames:[ 'ID', '地图名称','sn','所属工地','楼栋','楼层','地图宽度','地图长度','备注'],
+        colModel:[
+			{name:"id",index:"id", align:"center",editable:false, hidden:true},
+            {name:"name",index:"name",align:"center",editable:true},
+            {name:"sn",index:"sn",align:"center",editable:false,hidden:true},
+            {name:"field",index:"field",align:"center",editable:true,hidden:true, editrules: { edithidden: true },sortable:true,edittype:"select",editoptions:{value:":"}},
+            {name:"building",index:"building",align:"center",editable:true},
+            {name:"ground",index:"ground",align:"center",editable:true},
+            {name:"width",index:"width",align:"center",editable:true},
+            {name:"length",index:"length",align:"center",editable:true},
+			{name:"memo",index:"memo",align:"center",editable:true}
+          ],
+        editurl:"../GetMapInfo/doPost.do",
+        pager:"#jqGridPagerMap",
+        rowNum: 20,  //设置行数
+        onCellSelect:rowClicked,
+   	 	viewrecords:true,//总记录数
+   	 	jsonReader:{
+            repeatitems:false
+        },
+    });
+    
+    
+    jQuery("#jqGridMap").jqGrid('navGrid', '#jqGridPagerMap',
+	            {edittext: '编辑', addtext: '添加', deltext: '删除', search:false
+	            },
+	            {
+	            	reloadAfterSubmit : true,
+	            	closeOnEscape:true,
+	            	beforeSubmit: validBeforeSubmit,
+	            	closeAfterEdit:true,
+	            	beforeShowForm: function(formid) {
+	            		refreshField("edit");
+		            }
+	            },//edit options
+	            {  
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            	closeOnEscape:true,
+	            	beforeSubmit: validBeforeSubmit,
+	                closeAfterAdd:true,
+	                beforeShowForm: function(formid) {
+	                	refreshField("add");
+		            }
+	            },//add options
+	            {  
+	            	closeOnEscape:true,
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            }, //del options
+	            {}, //search option
+	            {}
+	    );
+    
+</script>
+</body>
+</html>

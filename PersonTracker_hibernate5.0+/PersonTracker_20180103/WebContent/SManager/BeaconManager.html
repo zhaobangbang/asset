@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="../css/css/fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/css/bootstrap.min.css" />
+    
+    <script src="../scripts/jquery-2.1.4.min.js"></script>
+   
+    <script src="../scripts/canvas.js"></script>
+    <script src="../scripts/jquery.mousewheel.js"></script>
+    
+    <style type="text/css">   
+		.border{
+		    position:relative;
+		    border:1px solid #999999;
+		    padding:10px;
+		    left:16px;
+		    border-radius:5px;
+		    
+		    height:30px;
+		}
+		.out{ 
+			position:absolute;
+			top:7px;
+			border-color:transparent #999999 transparent transparent; 
+			border-style:dashed dashed solid dashed; 
+			border-width:8px; 
+		} 
+		.in{ 
+			position:absolute; 
+			border-color:transparent #ffffff transparent transparent; 
+			border-style:dashed dashed solid dashed; 
+			border-width:0px;
+			top:-10px;
+			left:12px;
+			width:140px;
+		} 
+		
+		#zoom-btn-container  #zoom-btn-container2{
+		    -webkit-box-shadow: 1px 1px 2px rgba(0,0,0,.4);
+		    background: rgba(255,255,255,.8);
+		    border-radius: 3px;
+		  }
+		  .btn-info {
+		   text-shadow: 0 -1px 0 rgba(0, 0, 0, .2);
+		   -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 1px 1px rgba(0, 0, 0, .075);
+		   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 1px 1px rgba(0, 0, 0, .075);
+		   }
+		   .btn-info.active{
+		    -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+		    box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+		   }
+		   .btn-info .badge{
+		       text-shadow: none;
+		   }
+		   .btn:active,
+		   .btn.active {
+		       background-image: none;
+		   }
+		   .btn-info {
+			  background-image: -webkit-linear-gradient(top, #5bc0de 0%, #2aabd2 100%);
+			  background-image:      -o-linear-gradient(top, #5bc0de 0%, #2aabd2 100%);
+			  background-image: -webkit-gradient(linear, left top, left bottom, from(#5bc0de), to(#2aabd2));
+			  background-image:         linear-gradient(to bottom, #5bc0de 0%, #2aabd2 100%);
+			  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff5bc0de', endColorstr='#ff2aabd2', GradientType=0);
+			  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+			  background-repeat: repeat-x;
+			  border-color: #28a4c9;
+		}
+		.btn-info:hover,
+		.btn-info:focus {
+		  background-color: #2aabd2;
+		  background-position: 0 -15px;
+		}
+		.btn-info:active,
+		.btn-info.active {
+		  background-color: #2aabd2;
+		  border-color: #28a4c9;
+		}
+		.btn-info:disabled,
+		.btn-info[disabled] {
+		  background-color: #2aabd2;
+		  background-image: none;
+		}
+		
+		.nav {
+		  padding-left:0;
+		  margin-bottom:0;
+		  list-style:none
+		}
+		
+		   .navbar-nav {
+	     margin:0.5px 0px;
+		   }
+		
+		   .navbar-nav > li {
+		    float:left;
+	    padding:2px;
+	    margin-right:3px;
+	    margin-top:0px;
+		   }
+		  	.smart-green {
+			margin-left:auto;
+			margin-right:auto;
+			max-width: 500px;
+			background: #F8F8F8;
+			padding: 30px 30px 20px 30px;
+			font: 12px Arial, Helvetica, sans-serif;
+			color: #666;
+			border-radius: 5px;
+			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
+		}
+		.smart-green h1 {
+			font: 24px "Trebuchet MS", Arial, Helvetica, sans-serif;
+			padding: 20px 0px 20px 40px;
+			display: block;
+			margin: -30px -30px 10px -30px;
+			color: #FFF;
+			background: #9DC45F;
+			text-shadow: 1px 1px 1px #949494;
+			border-radius: 5px 5px 0px 0px;
+			-webkit-border-radius: 5px 5px 0px 0px;
+			-moz-border-radius: 5px 5px 0px 0px;
+			border-bottom:1px solid #89AF4C;
+		}
+		.smart-green label {
+			display: block;
+			margin: 0px 0px 5px;
+		}
+		.smart-green label>span {
+			float: left;
+			margin-top: 10px;
+			color: #5E5E5E;
+		}
+		.smart-green input[type="text"], .smart-green select{
+			color: #555;
+			height: 30px;
+			line-height:15px;
+			width: 100%;
+			padding: 0px 0px 0px 10px;
+			margin-top: 2px;
+			border: 1px solid #E5E5E5;
+			background: #FBFBFB;
+			outline: 0;
+			-webkit-box-shadow: inset 1px 1px 2px rgba(238, 238, 238, 0.2);
+			box-shadow: inset 1px 1px 2px rgba(238, 238, 238, 0.2);
+			font: normal 14px/14px Arial, Helvetica, sans-serif;
+		}
+		.smart-green .button {
+			background-color: #9DC45F;
+			border-radius: 5px;
+			-webkit-border-radius: 5px;
+			-moz-border-border-radius: 5px;
+			border: none;
+			padding: 10px 25px 10px 25px;
+			color: #FFF;
+			text-shadow: 1px 1px 1px #949494;
+		}
+		.smart-green .button:hover {
+			background-color:#80A24A;
+		}
+		
+		.animated{
+		          -webkit-animation-duration:1.4s;
+		          animation-duration:1.4s;
+		          -webkit-animation-fill-mode:both;
+		          animation-fill-mode:both
+		      }
+
+       @-webkit-keyframes bounceOutUp {
+           0% {
+               -webkit-transform: translateY(0);
+               transform: translateY(0);
+           }
+
+           20% {
+               opacity: 1;
+               -webkit-transform: translateY(20px);
+               transform: translateY(20px);
+           }
+
+           100% {
+               opacity: 0;
+               -webkit-transform: translateY(-2000px);
+               transform: translateY(-2000px);
+           }
+       }
+
+        @keyframes bounceOutUp {
+            0% {
+                -webkit-transform: translateY(0);
+                -ms-transform: translateY(0);
+                transform: translateY(0);
+            }
+
+            20% {
+                opacity: 1;
+                -webkit-transform: translateY(20px);
+                -ms-transform: translateY(20px);
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 0;
+                -webkit-transform: translateY(-2000px);
+                -ms-transform: translateY(-2000px);
+                transform: translateY(-2000px);
+            }
+        }
+
+        .bounceOutUp {
+            -webkit-animation-name: bounceOutUp;
+            animation-name: bounceOutUp;
+        }
+
+        @-webkit-keyframes flipInX {
+            0% {
+                -webkit-transform: perspective(400px) rotateX(90deg);
+                transform: perspective(400px) rotateX(90deg);
+                opacity: 0;
+            }
+
+            40% {
+                -webkit-transform: perspective(400px) rotateX(-10deg);
+                transform: perspective(400px) rotateX(-10deg);
+           }
+
+            70% {
+                -webkit-transform: perspective(400px) rotateX(10deg);
+                transform: perspective(400px) rotateX(10deg);
+            }
+
+            100% {
+                -webkit-transform: perspective(400px) rotateX(0deg);
+                transform: perspective(400px) rotateX(0deg);
+                opacity: 1;
+            }
+        }
+
+        @keyframes flipInX {
+            0% {
+                -webkit-transform: perspective(400px) rotateX(90deg);
+                -ms-transform: perspective(400px) rotateX(90deg);
+                transform: perspective(400px) rotateX(90deg);
+                opacity: 0;
+            }
+
+            40% {
+                -webkit-transform: perspective(400px) rotateX(-10deg);
+                -ms-transform: perspective(400px) rotateX(-10deg);
+                transform: perspective(400px) rotateX(-10deg);
+            }
+
+            70% {
+                -webkit-transform: perspective(400px) rotateX(10deg);
+                -ms-transform: perspective(400px) rotateX(10deg);
+                transform: perspective(400px) rotateX(10deg);
+            }
+
+            100% {
+                -webkit-transform: perspective(400px) rotateX(0deg);
+                -ms-transform: perspective(400px) rotateX(0deg);
+                transform: perspective(400px) rotateX(0deg);
+                opacity: 1;
+            }
+        }
+
+        .flipInX {
+            -webkit-backface-visibility: visible !important;
+            -ms-backface-visibility: visible !important;
+            backface-visibility: visible !important;
+            -webkit-animation-name: flipInX;
+            animation-name: flipInX;
+        }
+
+
+        #dialogBg {
+            width:100%;
+            height:100%;
+            background-color:#000000;
+            opacity:.6;
+            filter:alpha(opacity=60);
+            position:fixed;
+            top:0;left:0;
+            z-index:9999;
+            display:none;
+        }
+        #dialog {
+            width:250px;
+            height:160px;
+            margin:0 auto;
+            display:none;
+            background-color:#ffffff;
+            position:fixed;
+            top:40%;
+            left:50%;
+            margin:-120px 0 0 -150px;
+            z-index:10000;
+            border:1px solid #ccc;
+            border-radius:10px;
+            -webkit-border-radius:10px;
+            box-shadow:3px 2px 4px #ccc;
+            -webkit-box-shadow:3px 2px 4px #ccc;
+        }
+        .dialogTop {
+            width:90%;
+            margin:0 auto;
+            border-bottom:1px dotted #ccc;
+            letter-spacing:1px;
+            padding:10px 0;
+            text-align:right;
+        }
+        .dialogIco {
+            width:50px;
+            height:50px;
+            position:absolute;
+            top:-25px;
+            left:50%;
+            margin-left:-25px;
+        }
+        .editInfos {
+            padding:15px 0;
+        }
+    </style>
+    
+</head>
+<body onload="buttonEvent()">
+    <div id="zoom-btn-container" style="position: absolute; z-index: 10; bottom: auto; right: auto; top: 10px; left: 10px;">
+        <div id="zin-btn" class="zoom-btn zoom-btn-in">
+        	<ul class="nav navbar-nav" style="top:2px;">
+        		<li id="button1">
+        			<img src="../images/add.png">
+        		</li>
+        		
+        		<li id="button2">
+        			<img src="../images/ranging.png" >
+        		</li>
+        		
+        		<li id="button3" style="display:none;">
+        			<img src="../images/stop.png">
+        		</li>
+        		
+        		<li id="button4" style="display:none">
+        			<img src="../images/reset.png"> 
+        		</li>
+        		
+        	</ul>
+        </div>
+    </div>
+     
+    <div style="position:absolute; top:50%;left:50%;transform:translate(-50%,-50%);">
+        <canvas id="indoormap" width="1080" height="1175"></canvas>
+        <div style="position:absolute;display:none; width:150px; height:30px;" id="main">
+           <div class="border"></div>
+           <div class="out">
+              <div class="in" contentEditable="true"></div>
+           </div>
+        </div>
+    </div>
+    
+    <div id="dialogBg"></div>
+   	<div id="dialog" class="animated">
+        <img class="dialogIco" width="50" height="50" src="../images/map.png" alt="" />
+        <div class="dialogTop">
+             <a href="javascript:;" class="claseDialogBtn">确认</a>
+        </div>
+        <form action="" id="editForm">
+            <ul class="editInfos" style="padding:0;margin:0;list-style:none">
+                <li style="width:98%;margin:8px auto auto;text-align: left;padding-left: 10px;padding-right: 10px;">
+                    <label style="width:98%;">
+                        <font color="#ff0000"></font>请选择地图：
+                        <select id="mapSelected"></select>
+                    </label>
+                </li>
+            </ul>
+        </form>
+    </div>
+    
+    <div id="iform" style="position: absolute; z-index: 10; top:7%; right: 10%; bottom: auto; left: auto; display:none;">
+    	<form action="" method="post" class="smart-green">
+			<h1>信标信息</h1>
+			<label id="label1">
+				<span>Major :</span>
+				<input id="Major" type="text" name="Major" placeholder="Major" />
+			</label>
+			
+			<label id="label2">
+				<span>Minor :</span>
+				<input id="Minor" type="text" name="Minor" placeholder="Minor" />
+			</label>
+			
+			<label id="label3">
+				<span>所属地图 :</span>
+				<input id="map" type="text" name="map" placeholder="map" />
+			</label>
+			
+			<label id="label4">
+				<span>x坐标 :</span>
+				<input id="x" type="text" name="x" placeholder="x"/>
+			</label>
+			
+			<label id="label5">
+				<span>y坐标 :</span>
+				<input id="y" type="text" name="y" placeholder="y"/>
+			</label>
+			
+			<label id="label6">
+				<span>别名 :</span>
+				<input id="alias" type="text" name="alias" placeholder="alias"/>
+			</label>
+			
+			<label id="label7">
+				<span>告警类型 :</span>
+				<select name="selection" id="alarmType">
+					<option value=""></option>
+					<option value="工人">工人</option>
+					<option value="管理者">管理者</option>
+					<option value="访客">访客</option>
+					<option value="资产">资产</option>
+				</select>
+			</label>
+			
+			<label id="label8">
+				<span>rssi1 :</span>
+				<input id="rssi1" type="text" name="rssi1" placeholder="rssi1"/>
+			</label>
+			
+			<label id="label9">
+				<span>rssi2:</span>
+				<input id="rssi2" type="text" name="rssi2" placeholder="rssi2"/>
+			</label>
+			
+			<label style="vertical-align:middle;">
+				<input id="btnAdd" type="button" class="button" value="保存"/>
+				<input id="ClsBtn" type="button" class="button" value="关闭">
+				<input id="btnEdit" type="button" class="button" value="更改"/>
+				<input id="btnDel" type="button" class="button" value="删除"/>
+			</label>
+
+		</form>
+    </div>
+   
+   <script>
+   	   var ibeacons = [];
+   	   var mapid;
+   	   var MAPINFO = [];
+   	   var reLine = [];
+   	   
+	   function GetQueryString(name) {
+			var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+		    var r = window.location.search.substr(1).match(reg);
+		    if (r!=null) return (r[2]); 
+		    	return null;
+		}
+		var inputName = GetQueryString("name");
+		
+	    $(document).ready(function () {
+	    	 var select = $("select#mapSelected");	
+	    	 //获取所有地图名称 
+	    	 $.get("../GetMapInfo/doGet.do", function(str) {
+	    		 select.empty();
+	    		 select.append(str);
+			 });
+	         
+	    	var w,h,className;
+	        function getSrceenWH() {
+	            w = $(window).width();
+	            h = $(window).height();
+	            $('#dialogBg').width(w).height(h);
+	        }
+
+	        window.onresize = function() {  
+	            getSrceenWH();
+	        } 
+
+	        $(window).resize(); 
+
+	        //弹出对话框
+	        $(function() {
+	            getSrceenWH();
+                //开启地图选择弹窗 
+                className = "flipInX";
+                $('#dialogBg').fadeIn(300);
+                $('#dialog').removeAttr('class').addClass('animated '+className+'').fadeIn();
+    	     	
+	            //关闭地图选择弹窗 
+	            $('.claseDialogBtn').click(function() {
+	                $('#dialogBg').fadeOut(300,function() {
+	                    $('#dialog').addClass('bounceOutUp').fadeOut();
+	                });
+	                
+    				mapid = $("#mapSelected").val();
+    				
+    				request(mapid);//获取地图信息 
+ 
+    				$.ajax({
+    		   			 async: false,
+    		   			 type: "GET",
+    		   			 url: "../GetMapInfo/doGet.do?name=" + mapid,
+    		   			 success: function(data) {
+    		   					mapid = eval("(" + data + ")");
+    		    				mapid = mapid;
+    		   			 }
+    	           });
+ 
+	                //获取该地图所有的 ibeacon信标 
+	                $.get("../BeaconManager/doGet.do?mapid="+mapid, function(data) {
+	                	for(i = 0; i < data.length; i++) {
+	                		var ibeacon = {
+	                			sn: data[i].sn,
+	                			alias: data[i].alias,
+	                			x: data[i].x,
+	                			y: data[i].y,
+	                			mapid: data[i].mapid,
+	                			rssi1: data[i].rssi1,
+	                			rssi2: data[i].rssi2,
+	                			alarmtype: data[i].alarmtype
+	                		}
+	                		ibeacons.push(ibeacon);
+	                	}
+	                	
+					});
+	                
+	                init();
+	            });
+	            
+	        });    
+	    });
+	    
+	    function request(mapid) {
+        	var b=document.createElement("script");
+            b.type = "text/javascript"; 
+            b.src = "http://192.168.2.151:8080/PersonTracker/jsonp?id=" + mapid + "&type=json&callback=callbackfunction"; 
+            //b.src = "http://120.27.104.163/asset/jsonp?id=" + id + "&type=json&callback=callbackfunction"; 
+            var headb=document.getElementsByTagName("head")[0];
+            headb.appendChild(b);
+        }
+        
+        var callbackfunction = function(jsondata) {
+            if(jsondata == "") {
+        		alert("Nothing received from map server, please check the map ID!")
+        		return;
+        	}
+            
+        	MapData_ = JSON.parse(jsondata);
+            var x = MapData_.features[0].properties.x;
+            var y = MapData_.features[0].properties.y;
+            var width = MapData_.features[0].properties.width;
+            var height = MapData_.features[0].properties.height;
+            var imageurl = MapData_.features[0].properties.imageurl;
+            
+            var map_ = {
+            	x: x,
+        		y: y,
+        		width: width,
+        		height: height,
+        		imageurl: imageurl
+            };
+            MAPINFO.push(map_);
+        };
+
+     	var clientWidth = document.documentElement.clientWidth;
+     	var clientHeight = document.documentElement.clientHeight;
+
+     	var zoomScale = 1;
+     	var gesturableCanvas = null;
+     	var gesturableCanvas = null;
+     	if (clientWidth <= clientHeight) {
+         	zoomScale = clientWidth / 720;
+     	} else {
+         	zoomScale = clientHeight / 720;
+     	}
+     
+	 	function init() {
+        	gesturableCanvas = new CanvasZoom({
+           		canvas: document.getElementById('indoormap'),
+            	desktop: true
+        	});
+        	scaling();
+	 	}
+
+    	var dbBtn = document.getElementById("btnAdd");
+    	var closBtn = document.getElementById("ClsBtn");
+    	closBtn.onclick = function() {
+    		reDraw();
+    	}
+    	
+    	dbBtn.onclick = function() {
+    		//存入数据 库
+    		var r1 = $("#rssi1").val();
+    		var r2 = $("#rssi2").val();
+    		if(Number(r2) > Number(r1)) {
+    			alert("RSSI1 must be larger than RSSI2.");
+    			return; 
+    		}
+    		var a = Math.abs(r1);
+    		var n1 = (r2-r1)/3.01;
+    		var n = n1.toFixed(5);
+    		var oper = "add";
+    		
+    		var BeaconInfo = {
+    			major: $("#Major").val(),
+    			minor: $("#Minor").val(),
+    			mapid: mapid,
+    			x: $("#x").val(),
+    			y: $("#y").val(),
+    			alias: $("#alias").val(),
+    			alarmtype: $("#alarmType").val(),
+    			rssi1: $("#rssi1").val(),
+    			rssi2: $("#rssi2").val(),
+    			a: a,
+    			n: n,
+    			oper: oper
+    		};
+    		
+    		$.ajax({
+				async: false,
+				type: "POST",
+				url: "../BeaconManager/doPost.do",
+				data: BeaconInfo,
+				success: function(data) {
+			   		var status = eval("("+data+")");
+			    	if (status == "0") {				    					 			    					 
+			    		alert("数据添加成功！");	    					
+					}
+			    	else if (status == "1") {				    					 			    					 
+			    		alert("请输入正确的major或minor格式  ！");	    					
+					}
+			    	else if (status == "2"){
+						alert("请将beacon布置在室内地图内 !");
+					}
+			   }		
+	    });
+    		reDraw();
+    	}
+    	
+    	function reDraw() {
+    		$('#iform').css('display','none');
+    		ibeacons.length = 0;
+    		$.get("../BeaconManager/doGet.do?mapid="+mapid, function(data) {
+            	for(i = 0; i < data.length; i++) {
+            		var ibeacon = {
+            			sn: data[i].sn,
+            			alias: data[i].alias,
+            			x: data[i].x,
+            			y: data[i].y,
+            			mapid: data[i].mapid,
+            			rssi1: data[i].rssi1,
+            			rssi2: data[i].rssi2,
+            			alarmtype: data[i].alarmtype
+            		}
+            		ibeacons.push(ibeacon);
+            	}
+			});
+    		DrawIbeacon(sX, sY, osX, osY);
+    	}
+    
+   </script>
+   
+   <script type="text/javascript" src="../scripts/drawMap.js"></script>
+
+</body>
+</html>

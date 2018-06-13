@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../js/grid.locale-cn.js"></script>
+    <script type="text/javascript" src="../js/jquery.jqGrid.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/ui.jqgrid.css" />
+
+    <script type="text/javascript" src="../jedate/jquery.jedate.js"></script>
+    <link type="text/css" rel="stylesheet" href="../jedate/skin/jedate.css">
+    <link rel="SHORTCUT ICON" href="../image/favicon.ico"/>
+<title>状态信息</title>
+<style>
+	html,body {
+		font-size: 75%;
+	}
+    .name1 {
+       color:#000; 
+       font:13px/20px Georgia, "Times New Roman", Times, serif; text-decoration:none;
+    }
+    .divwidth {
+    	width:100%; 
+    	position:absolute !important; 
+    	top: 186px; 
+    	bottom: 0px; 
+    	min-height: 300px;
+    }
+</style>
+</head>
+<body>
+	<div id="query"> 
+	    <input type="submit" class="btn" style="background-color:#e3e1e2;" value="设备号" disabled="disabled"/>
+	    <input type="text" class="input" id="qdeveui" style="width:150px;"/> &nbsp;&nbsp;&nbsp;&nbsp; 
+	    <input type="submit" class="btn" style="background-color:#e3e1e2;" value="时间段" disabled="disabled"/>
+	    <input class="datainp wicon" id="datebut1" type="text" placeholder="开始日期" value=""  readonly>
+	    <label class="name1">到</label>
+        <input class="datainp wicon" id="datebut2" type="text" placeholder="结束日期"   readonly>&nbsp;&nbsp;&nbsp;&nbsp;
+	    <input type="submit" class="btn" id="find_btn" value="查 询" style="background-color:#7ebfb7;" onclick="triggerQueryJQGrid();"/> 
+	    <input type="submit" class="btn" id="clear_btn" value="重置" style="background-color:#7ebfb7;" onclick="triggerClearQueryJQGrid();"/> 
+	</div>
+	
+	<p></p>
+	<table id="jqGridDev"></table>
+	<div id="jqGridPagerDev"></div>
+	
+	<script type="text/javascript">
+		var selectid=null;
+		var deveui=null;
+		
+		function GetQueryString(name) {
+	    	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+			var r = window.location.search.substr(1).match(reg);
+			if (r!=null) return (r[2]); return null;
+		}
+		var inputName = GetQueryString("name");
+		
+		jQuery("#jqGridDev").jqGrid({
+	        url:"../DevStatusRecordInfo/doPost.do",
+	        datatype: "json",
+	        mtype:"POST",
+	    	height: 'auto',
+	    	autowidth:true,  
+	        colNames:[ 'ID', '终端号','电量','信号值','SNR','VIB','时间'], 
+	        colModel:[
+				{name:"id",index:"id", align:"center",editable:false},
+	            {name:"deveui",index:"deveui",align:"center",editable:false},
+	            {name:"battery",index:"battery",align:"center",editable:false},
+	            {name:"rssi",index:"rssi",align:"center",editable:false},
+	            {name:"snr",index:"snr",align:"center",editable:false},
+	            {name:"vib",index:"vib",align:"center",editable:false},
+	            {name:"time",index:"time",align:"center",editable:false,
+   	            	formatter:function(cellvalue, options, row){
+   	            		var year = cellvalue.year;
+		   	      		var month = cellvalue.monthValue;
+		   	      		var day = cellvalue.dayOfMonth;
+		   	      		var hour = cellvalue.hour;
+		   	      		var minute = cellvalue.minute;
+		   	      		var second = cellvalue.second;
+		   	      		if(month < 10){
+	            			month = "0" + month;
+	            		}
+	            		if(day < 10){
+	            			day = "0" + day;
+	            		}
+	            		if(hour < 10){
+	            			hour = "0" + hour;
+	            		}
+	            		if(minute < 10){
+	            			minute = "0" + minute;
+	            		}
+	            		if(second < 10){
+	            			second = "0" + second;
+	            		}
+		   	      		var str = "-";
+		   	      		var str1 = ":";
+		   	      		return year + str + month + str + day + " " + hour + str1 + minute + str1 + second;
+   	            	}
+	            }         
+	        ],
+	        pager:"#jqGridPagerDev",
+	        viewrecords:true,//总记录数
+	    	pageSize: 30,
+	        jsonReader:{
+	            repeatitems:false
+	            },
+	        editurl:"../DevStatusRecordInfo/doPost.do"
+	    });
+		
+		jQuery("#jqGridDev").jqGrid('navGrid', '#jqGridPagerDev',
+	            {edit: false, add: false, deltext:'删除', search:false
+	            },
+	            {
+     		reloadAfterSubmit : true,
+           	closeOnEscape:true,
+	            	closeAfterEdit:true,
+          	},//edit options
+            {  
+                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+            	closeOnEscape:true,
+	                closeAfterAdd:true,
+            },//add options
+            {  
+            	closeOnEscape:true,
+                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+            }, //del options
+            {}, //search option
+            {}
+        );
+		
+		//时间段 
+		var start = {
+		    format: 'YYYY-MM-DD hh:mm:ss',
+		    minDate: '2016-07-16 23:59:59', 
+		    festival:true,
+		    maxDate: $.nowDate(0), 
+		    choosefun: function(elem,datas) {
+		        end.minDate = datas; 
+		    }
+		};
+		
+		var end = {
+			format: 'YYYY-MM-DD hh:mm:ss',
+		    minDate: $.nowDate(0), //设定最小日期为当前日期
+		    festival:true,
+		    maxDate: '2099-07-16 23:59:59', //最大日期
+		    choosefun: function(elem,datas){
+		        start.maxDate = datas; //将结束日的初始值设定为开始日的最大日期
+		    }
+		};
+		
+		$("#datebut1").jeDate(start);
+		$("#datebut2").jeDate(end);
+		
+		function testShow(elem){
+	        $.jeDate(elem,{
+	            insTrigger:false,
+	            isinitVal:true,
+	            festival:true,
+	            ishmsVal:false,
+	            minDate: '2016-12-16 23:59:59',
+	            maxDate: $.nowDate(0),
+	            format:"hh:mm",
+	            zIndex:3000,
+	        })
+	    }
+		
+		//触发查询事件 
+		function triggerQueryJQGrid() {
+			var qdeveui = $("#qdeveui").attr("value");
+			var datebut1 = $("#datebut1").attr("value");
+			var datebut2 = $("#datebut2").attr("value");
+
+			if (qdeveui == "") {
+				alert("设备号不能为空!");
+			}else{
+				if((datebut1 != "") && (datebut2 != "")) {
+					var curPostData = $("#jqGridDev").getGridParam("postData");
+					delete curPostData["deveui"];
+					$("#jqGridDev").jqGrid('setGridParam',{
+						page:1,
+						url:"../DevStatusRecordInfo/doPost.do?qdeveui="+ qdeveui + "&datebut1=" + datebut1 +"&datebut2="+ datebut2
+					}).trigger('reloadGrid'); 
+					return true;
+				}else{
+					var curPostData = $("#jqGridDev").getGridParam("postData");
+					$.extend(curPostData, { deveui: qdeveui});
+					$("#jqGridDev").jqGrid('setGridParam',{
+						page:1
+					}).trigger('reloadGrid');
+					return true;
+				}
+			}
+		}
+		
+		function triggerClearQueryJQGrid() {
+			$("#qdeveui").attr("value","");
+			$("#datebut1").attr("value","");
+			$("#datebut2").attr("value","");
+			
+			var curPostData = $("#jqGridDev").getGridParam("postData");
+			delete curPostData["deveui"];
+			delete curPostData["battery"];
+			delete curPostData["rssi"];
+			delete curPostData["gps"];
+			delete curPostData["vib"];
+			delete curPostData["time"];
+	
+			$("#jqGridDev").jqGrid('setGridParam',{
+				page:1,
+				url:"../DevStatusRecordInfo/doPost.do?usrname="+GetQueryString("name")
+			}).trigger('reloadGrid'); 
+    	}
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2018-2-23 16:43:02 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+    <class name="com.lansitec.dao.beans.StatusRecord" table="status_record_tbl">
+        <id name="id" type="java.lang.Integer">
+            <column name="ID" />
+            <generator class="native" />
+        </id>
+        <property name="deveui" type="java.lang.String">
+            <column name="DEVEUI" />
+        </property>
+        <property name="battery" type="byte">
+            <column name="BATTERY" />
+        </property>
+        <property name="rssi" type="short">
+            <column name="RSSI" />
+        </property>
+        <property name="snr" type="byte">
+            <column name="SNR" />
+        </property>
+        <property name="vib" type="byte">
+            <column name="VIB" />
+        </property>
+        <property name="time" type="java.time.LocalDateTime">
+            <column name="TIME" />
+        </property>
+    </class>
+</hibernate-mapping>

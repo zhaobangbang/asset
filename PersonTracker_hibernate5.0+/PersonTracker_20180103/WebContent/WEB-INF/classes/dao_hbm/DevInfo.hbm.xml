@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2018-1-17 10:19:14 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+    <class name="com.lansitec.dao.beans.DevInfo" table="dev_info_tbl" dynamic-insert="true" dynamic-update="true">
+        <id name="id" type="java.lang.Integer">
+            <column name="ID" />
+            <generator class="native"/>
+        </id>
+        <property name="deveui" type="java.lang.String">
+            <column name="DEVEUI" />
+        </property>
+        <property name="devtype">
+            <column name="DEVTYPE" />
+            <type name="org.hibernate.type.EnumType">
+                <param name="type">12</param>
+                <param name="enumClass">com.lansitec.enumlist.Devtype</param>
+            </type>
+        </property>
+        <property name="field" type="java.lang.String">
+            <column name="FIELD" />
+        </property>
+        <property name="recv" type="java.time.LocalDate">
+            <column name="RECV" />
+        </property>
+        <property name="owner" type="java.lang.String">
+            <column name="OWNER" />
+        </property>
+        <property name="alias" type="java.lang.String">
+            <column name="ALIAS" />
+        </property>
+        <property name="battery" type="java.lang.String">
+            <column name="BATTERY" />
+        </property>
+        <property name="rssi" type="short">
+            <column name="RSSI" />
+        </property>
+        <property name="snr" type="float">
+            <column name="SNR" />
+        </property>
+        <property name="statustime" type="java.time.LocalDateTime">
+            <column name="STATUSTIME" />
+        </property>
+        <property name="mapid" type="java.lang.String">
+            <column name="MAPID" />
+        </property>
+        <property name="entertime" type="java.time.LocalDateTime">
+            <column name="ENTERTIME" />
+        </property>
+        <property name="exittime" type="java.time.LocalDateTime">
+            <column name="EXITTIME" />
+        </property>
+        <property name="memo" type="java.lang.String">
+            <column name="MEMO" />
+        </property>
+    </class>
+</hibernate-mapping>

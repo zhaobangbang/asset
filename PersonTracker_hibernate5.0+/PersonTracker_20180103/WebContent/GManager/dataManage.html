@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="../css/login2.css" />
+<script type="text/javascript" src="../js/jquery-3.1.0.min.js"></script>
+<script type="text/javascript" src="../js/jquery.js"></script>
+<link rel="SHORTCUT ICON" href="../image/favicon.ico"/>
+
+<style type="text/css">
+	body, div, td, input {font-size:12px; margin:0px; }
+	select {height:20px; width:300px; }
+	table {align:center ;width:300;}
+	legend {font-weight:bold;}
+	.title {font-size: 16px; padding: 10px; margin:10px; width:80%; }
+	.text {height:20px; width:300px; border:1px solid #AAAAAA; }
+	#dd{display:none;}
+
+	.line {margin:2px; }
+	.leftDiv {width:110px; float:left; height:22px; line-height:22px; font-weight:bold; }
+	.rightDiv {height:22px; line-height:22px; }
+	.button {
+		color:#fff;
+		font-weight:bold;
+		font-size: 11px; 
+		text-align:center;
+		padding:.17em 0 .2em .17em;
+		border-style:solid;
+		border-width:1px;
+		border-color:#9cf #159 #159 #9cf;
+	}
+	#button {
+		color:#fff;
+		font-size: 8px; 
+		text-align:center;
+		padding:.17em 0 .2em .17em;
+		border-style:solid;
+		border-width:1px;
+		border-color:#9cf #159 #159 #9cf;
+	}
+</style>
+<title>参数配置</title>
+</head>
+
+<body style="text-align: left; font-size: 16px; color:#fff;">
+
+<br/>
+
+<script type="text/javascript">
+	var inputName;
+	function GetQueryString(name) {
+		   var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+		   var r = window.location.search.substr(1).match(reg);
+		   if (r!=null) return (r[2]); 
+		   return null;
+	}
+	inputName = GetQueryString("name");
+	
+	$(document).ready(function() {
+		var select = document.getElementById("devsel");
+		var devArray = new Array();
+		
+		$.ajaxSetup({
+			async: false
+		});
+		//获得当前用户名下的所有设备
+		$.get("../DeviceListMgr/doGet.do?usrname=" + inputName, function(data) {
+				devArray = eval("(" + data + ")");
+
+				for(var devNumber=0; devNumber<devArray.length+1; devNumber++) {
+					var option = document.createElement("option");
+					option.setAttribute("value",devNumber);//设置option属性值
+					if(0 == devNumber)
+						option.appendChild(document.createTextNode("选择设备"));
+					else
+						option.appendChild(document.createTextNode(devArray[devNumber-1]));
+					select.appendChild(option);//向select增加option 
+				}
+		});
+		
+		//获取当前设备信息 
+		select.onchange=function() {
+	    	//获取当前设备下的通信设置模式
+			var url1 = "../DevCommSetting/doGet.do?deveui="+ $("#devsel").find("option:selected").text();
+			$.get(url1, function(data, status) {
+	    		var usrInfo1 = eval("(" + data + ")");
+	    		var srate = usrInfo1["MODE"];
+	    		var sweep = usrInfo1["RFU"];
+	    		var sADR = usrInfo1["ADR"];
+	    		var speed = usrInfo1["DR"];
+	    		var str1 = "DR";
+	    		var str = str1 + speed;
+	    		var spower = usrInfo1["POWER"];
+	    		
+	    		var spObj4 = $("#speed");
+				var pwObj4 = $("#power");
+	    		
+	    		//获取速率制式
+	    		if (srate <= 0) {
+	    			//速率制式为空的情况下 
+	    			$('#rate option:eq(0)').attr('selected',true);
+	    			$('#sweep option:eq(0)').attr('selected',true);
+	    			$("input[value='off']").attr('checked',true);
+	    			$('#speed option:eq(0)').attr('selected',true);
+	    			$('#power option:eq(0)').attr('selected',true);
+	    			
+	    			//速率制式不为空的情况下
+	        	}else {
+	    			var spObj = $("#rate");
+	    			spObj.empty();
+			    	$("#rate").prop('disabled',false);
+			    	var rt = [
+						{"value":"0","text":""},
+						{"value":"1","text":"AU920"},
+						{"value":"2","text":"CLAA"},
+						{"value":"3","text":"CN470"},
+						{"value":"4","text":"AS923"},
+						{"value":"5","text":"EU434"},
+						{"value":"6","text":"EU868"},
+						{"value":"7","text":"US915"}
+					];
+					var ra =0;
+					for( ; ra <= rt.length-1;ra++) {
+						 spObj.append("<option value='"+rt[ra].value+"'>"+rt[ra].text+"</option>");	
+					}
+					var re = 0;
+					for( ; re <= rt.length-1;re++) {
+						if(rt[re].value == srate)
+							$("#rate").val(rt[re].value);
+		        	}
+	    			$("#sweep").val(" ");
+	    			$("#sweep").prop('disabled',true);
+	    			
+					if(srate == 2) {
+	    				//速率制式为 CALL时,获取扫屏模式 
+	    				var spObj1 = $("#sweep");
+	    			 	spObj1.empty();
+			    	 	$("#sweep").prop('disabled',false);
+	    				var sw = [
+							{"value":"0","text":""},
+							{"value":"1","text":"A模式"},
+							{"value":"2","text":"B模式"},
+							{"value":"3","text":"C模式"},
+							{"value":"4","text":"D模式"},
+							{"value":"5","text":"E模式"},
+							{"value":"6","text":"全屏扫描"}
+						];
+						var sp =0;
+						for( ; sp <= sw.length-1;sp++) {
+				 			spObj1.append("<option value='"+sw[sp].value+"'>"+sw[sp].text+"</option>");	
+	        			}
+						var wp = 0;
+						for( ; wp <= sw.length-1;wp++) {
+							if(sw[wp].value == sweep)
+								$("#sweep").val(sw[wp].value);
+	    				}
+	    			}
+	    		 
+	    			//添加速率、功率选项    
+	    			if(srate == 1 || srate == 7) {
+			    		spObj4.empty();
+			    		$("#speed").prop('disabled',false);
+			    	 
+			    	 	var data4 = [
+							{"value6":"a0","text6":""},
+							{"value6":"a1","text6":"DR0"},
+							{"value6":"a2","text6":"DR1"},
+							{"value6":"a3","text6":"DR2"},
+							{"value6":"a4","text6":"DR3"},
+							{"value6":"a5","text6":"DR4"},
+							{"value6":"a8","text6":"DR8"},
+							{"value6":"a9","text6":"DR9"},
+							{"value6":"a10","text6":"DR10"},
+							{"value6":"a11","text6":"DR11"},
+							{"value6":"a12","text6":"DR12"},
+							{"value6":"a13","text6":"DR13"}
+						];
+			    	    var k3 = 0; 
+						for( ; k3 <= data4.length-1;k3++) {
+							 spObj4.append("<option value='"+data4[k3].value6+"'>"+data4[k3].text6+"</option>");	
+						}
+						
+						pwObj4.empty();	
+						var arr4 = [
+							{"value6":"p0","text6":""},
+							{"value6":"p30","text6":"30"},
+							{"value6":"p28","text6":"28"},
+							{"value6":"p26","text6":"26"},
+							{"value6":"p24","text6":"24"},
+							{"value6":"p22","text6":"22"},
+							{"value6":"p20","text6":"20"},
+							{"value6":"p18","text6":"18"},
+							{"value6":"p16","text6":"16"},
+							{"value6":"p14","text6":"14"},
+							{"value6":"p12","text6":"12"},
+							{"value6":"p10","text6":"10"}
+							];
+						
+					    var p3 =0;
+						for( ; p3 <= arr4.length-1;p3++){
+							 pwObj4.append("<option value='"+arr4[p3].value6+"'>"+arr4[p3].text6+"</option>");	
+						}
+				     }else if (srate == 4) {
+				    	 spObj4.empty();
+				    	 $("#speed").prop('disabled',false);
+				    	 var data3 = [
+								{"value3":"a0","text3":""},
+								{"value3":"a1","text3":"DR0"},
+								{"value3":"a2","text3":"DR1"},
+								{"value3":"a3","text3":"DR2"},
+								{"value3":"a4","text3":"DR3"},
+								{"value3":"a5","text3":"DR4"},
+								{"value3":"a6","text3":"DR5"},
+								{"value3":"a7","text3":"DR6"}
+						 ];
+				    	 var k2 = 0; 
+						 for( ; k2 <= data3.length-1;k2++){
+							spObj4.append("<option value='"+data3[k2].value3+"'>"+data3[k2].text3+"</option>");	
+						 }
+						 pwObj4.empty();	
+						 var arr3 = [
+							{"value5":"p0","text5":""},
+							{"value5":"p16","text5":"16"},
+							{"value5":"p14","text5":"14"},
+							{"value5":"p12","text5":"12"},
+							{"value5":"p10","text5":"10"},
+							{"value5":"p8","text5":"8"},
+							{"value5":"p6","text5":"6"},
+							{"value5":"p4","text5":"4"},
+							{"value5":"p2","text5":"2"}
+						 ];
+						 var p2 =0;
+						 for( ; p2 <= arr3.length-1;p2++){
+							pwObj4.append("<option value='"+arr3[p2].value5+"'>"+arr3[p2].text5+"</option>");	
+						 }		
+				     }else if (srate == 5) {
+				    	 spObj4.empty();
+				    	 $("#speed").prop('disabled',false);
+				    	 var data3 = [
+							 {"value3":"a0","text3":""},
+							 {"value3":"a1","text3":"DR0"},
+							 {"value3":"a2","text3":"DR1"},
+							 {"value3":"a3","text3":"DR2"},
+							 {"value3":"a4","text3":"DR3"},
+							 {"value3":"a5","text3":"DR4"},
+							 {"value3":"a6","text3":"DR5"},
+							 {"value3":"a7","text3":"DR6"}
+						 ];
+				    	 var k2 = 0; 
+						 for( ; k2 <= data3.length-1;k2++){
+							spObj4.append("<option value='"+data3[k2].value3+"'>"+data3[k2].text3+"</option>");	
+						 }
+						 pwObj4.empty();	
+						 var arr3 = [
+							{"value5":"p0","text5":""},
+							{"value5":"p12","text5":"12"},
+							{"value5":"p10","text5":"10"},
+							{"value5":"p8","text5":"8"},
+							{"value5":"p6","text5":"6"},
+							{"value5":"p4","text5":"4"},
+							{"value5":"p2","text5":"2"}
+						 ];
+						 var p2 =0;
+					     for( ; p2 <= arr3.length-1;p2++){
+							pwObj4.append("<option value='"+arr3[p2].value5+"'>"+arr3[p2].text5+"</option>");	
+						 }		
+				     }else if(srate == 2) {
+				    	 spObj4.empty();
+				    	 $("#speed").prop('disabled',false);
+				    	 var data = [
+								{"value":"a0","text":""},
+								{"value":"a1","text":"DR0"},
+								{"value":"a2","text":"DR1"},
+								{"value":"a3","text":"DR2"},
+								{"value":"a4","text":"DR3"},
+								{"value":"a5","text":"DR4"},
+								{"value":"a6","text":"DR5"}
+							];
+				    	    var i = 0;
+							for( ; i <= data.length-1;i++){
+								 spObj4.append("<option value='"+data[i].value+"'>"+data[i].text+"</option>");	
+							}
+							
+							pwObj4.empty();
+							var arr = [
+								{"value1":"p0","text1":""},
+								{"value1":"p20","text1":"20"},
+								{"value1":"p18","text1":"18"},
+								{"value1":"p16","text1":"16"},
+								{"value1":"p14","text1":"14"},
+								{"value1":"p12","text1":"12"},
+								{"value1":"p10","text1":"10"},
+								{"value1":"p8","text1":"8"},
+								{"value1":"p6","text1":"6"}
+							];
+							
+						    var j =0;
+							for( ; j <= arr.length-1;j++) {
+								 pwObj4.append("<option value='"+arr[j].value1+"'>"+arr[j].text1+"</option>");	
+							}
+				     }else if(srate == 3) {
+				    	 spObj4.empty();
+				    	 $("#speed").prop('disabled',false);
+				    		var data1 = [
+								{"value2":"a0","text2":""},
+								{"value2":"a1","text2":"DR0"},
+								{"value2":"a2","text2":"DR1"},
+								{"value2":"a3","text2":"DR2"},
+								{"value2":"a4","text2":"DR3"},
+								{"value2":"a5","text2":"DR4"},
+								{"value2":"a6","text2":"DR5"}
+							];
+				    		var k = 0; 
+							for( ; k <= data1.length-1;k++){
+								 spObj4.append("<option value='"+data1[k].value2+"'>"+data1[k].text2+"</option>");	
+							}
+							
+							pwObj4.empty();	
+							var arr1 = [
+								{"value3":"p0","text3":""},
+								{"value3":"p20","text3":"20"},
+								{"value3":"p18","text3":"18"},
+								{"value3":"p16","text3":"16"},
+								{"value3":"p14","text3":"14"},
+								{"value3":"p12","text3":"12"},
+								{"value3":"p10","text3":"10"},
+								{"value3":"p8","text3":"8"},
+								{"value3":"p6","text3":"6"}
+							];
+						    var p =0;
+							for( ; p <= arr1.length-1;p++) {
+								 pwObj4.append("<option value='"+arr1[p].value3+"'>"+arr1[p].text3+"</option>");	
+							}	
+				     }else {
+				    	 spObj4.empty();
+				    	 $("#speed").prop('disabled',false);
+				    	 var data2 = [
+								{"value3":"a0","text3":""},
+								{"value3":"a1","text3":"DR0"},
+								{"value3":"a2","text3":"DR1"},
+								{"value3":"a3","text3":"DR2"},
+								{"value3":"a4","text3":"DR3"},
+								{"value3":"a5","text3":"DR4"},
+								{"value3":"a6","text3":"DR5"},
+								{"value3":"a7","text3":"DR6"}
+								];
+				    	  var k1 = 0; 
+						  for( ; k1 <= data2.length-1;k1++) {
+							  spObj4.append("<option value='"+data2[k1].value3+"'>"+data2[k1].text3+"</option>");	
+						  }
+						  pwObj4.empty();	
+						  var arr2 = [
+								{"value4":"p0","text4":""},
+								{"value4":"p16","text4":"16"},
+								{"value4":"p14","text4":"14"},
+								{"value4":"p12","text4":"12"},
+								{"value4":"p10","text4":"10"},
+								{"value4":"p8","text4":"8"},
+								{"value4":"p6","text4":"6"},
+								{"value4":"p4","text4":"4"},
+								{"value4":"p2","text4":"2"}
+						   ];
+	    			
+						   var p1 =0;
+						   for( ; p1 <= arr2.length-1;p1++){
+							  pwObj4.append("<option value='"+arr2[p1].value4+"'>"+arr2[p1].text4+"</option>");	
+						   }	
+	    				}
+	    		
+			    		//获取速率自适应
+		    		if(sADR == 0) {
+		    			document.getElementById("0").checked=true; 
+		    			document.getElementById("1").checked=false; 
+		    		}
+			    	else{
+			    		document.getElementById("0").checked=false; 
+		    			document.getElementById("1").checked=true; 
+			    	}		
+		    		var da = [
+						{"value":"a0","text":""},
+						{"value":"a1","text":"DR0"},
+						{"value":"a2","text":"DR1"},
+						{"value":"a3","text":"DR2"},
+						{"value":"a4","text":"DR3"},
+						{"value":"a5","text":"DR4"},
+						{"value":"a6","text":"DR5"},
+						{"value":"a7","text":"DR6"},
+						{"value":"a8","text":"DR8"},
+						{"value":"a9","text":"DR9"},
+						{"value":"a10","text":"DR10"},
+						{"value":"a11","text":"DR11"},
+						{"value":"a12","text":"DR12"},
+						{"value":"a13","text":"DR13"}
+					];
+		    		var daa =0;
+					for( ; daa <= da.length-1;daa++){
+						if(da[daa].text == str)
+							$("#speed").val(da[daa].value);
+					}
+
+		    		//获取功率 
+		    		var da1 = [
+		    			{"valu":"p0","text":""},
+						{"valu":"p20","text":"20"},
+						{"valu":"p14","text":"14"},
+						{"valu":"p11","text":"11"},
+						{"valu":"p8","text":"8"},
+						{"valu":"p6","text":"6"},
+						{"valu":"p2","text":"2"},
+						{"valu":"p17","text":"17"},
+						{"valu":"p16","text":"16"},
+						{"valu":"p30","text":"30"},
+						{"valu":"p12","text":"12"},
+						{"valu":"p10","text":"10"},
+						{"valu":"p7","text":"7"},
+						{"valu":"p1","text":"1"},
+						{"valu":"p28","text":"28"},
+						{"valu":"p26","text":"26"},
+						{"valu":"p24","text":"24"},
+						{"valu":"p22","text":"22"},
+						{"valu":"p18","text":"18"},
+						{"valu":"p4","text":"4"}
+					];
+			        var daa1 =0;
+			        for( ; daa1 <= da1.length-1;daa1++) {
+				    	if(da1[daa1].text == spower)
+							$("#power").val(da1[daa1].valu);
+					}
+	        	}
+			});
+	    	
+	    	//获取当前设备下的工作模式
+			var url2 = "../DevWorkSetting/doGet.do?deveui="+ $("#devsel").find("option:selected").text();
+	    	$.get(url2, function(data, status) {
+	    		var usrInfo2 = eval("(" + data + ")");
+	    		var id1 = usrInfo2["LOSTPOINT"];
+	    		var id2 = usrInfo2["SELFADAPT"];
+	    		var id3 = usrInfo2["ONEOFF"];
+	    		var id4 = usrInfo2["ALREPORT"];
+	    		if (id1 == 1){
+	    			document.getElementById("11").checked=true; 
+	    			document.getElementById("10").checked=false;
+	    		}else if(id1 == 0){
+	    			document.getElementById("11").checked=false; 
+	    			document.getElementById("10").checked=true;
+	    		}
+	    		if(id2 == 1){
+	    			document.getElementById("21").checked=true; 
+	    			document.getElementById("20").checked=false;
+	    		}else if(id2 == 0){
+	    			document.getElementById("21").checked=false; 
+	    			document.getElementById("20").checked=true;
+	    		}
+	            if(id3 == 1){
+	            	document.getElementById("31").checked=true; 
+	    			document.getElementById("30").checked=false;
+	            }else if(id3 == 0){
+	            	document.getElementById("31").checked=false; 
+	    			document.getElementById("30").checked=true;
+	            }
+	            if(id4 == 1){
+	            	document.getElementById("41").checked=true; 
+	    			document.getElementById("40").checked=false;
+	            }else if(id4 == 0){
+	            	document.getElementById("41").checked=false; 
+	    			document.getElementById("40").checked=true;
+	            }
+	    		$("#week1").val(usrInfo2["GPS"]);
+				$("#week2").val(usrInfo2["HB"]);	 
+	    	});
+	    	
+		}
+	});
+	
+	
+	//通信设置之速率模式转换
+     function change() {
+		rate1 = $("#rate").val();
+		
+		//CLAA
+		if(rate1 == 2) {
+			var spObj = $("#speed");
+			var pwObj = $("#power");
+			$("#sweep").val(" ");
+			$("#sweep").prop('disabled',false);
+			
+			spObj.empty();
+	    	$("#speed").prop('disabled',false);
+	    	var data = [
+					{"value":"a0","text":""},
+					{"value":"a1","text":"DR0"},
+					{"value":"a2","text":"DR1"},
+					{"value":"a3","text":"DR2"},
+					{"value":"a4","text":"DR3"},
+					{"value":"a5","text":"DR4"},
+					{"value":"a6","text":"DR5"}
+			];
+	    	var i = 0;
+			for( ; i <= data.length-1;i++){
+				spObj.append("<option value='"+data[i].value+"'>"+data[i].text+"</option>");	
+			}
+			
+			pwObj.empty();
+			var arr = [
+				{"value1":"p0","text1":""},
+				{"value1":"p20","text1":"20"},
+				{"value1":"p18","text1":"18"},
+				{"value1":"p16","text1":"16"},
+				{"value1":"p14","text1":"14"},
+				{"value1":"p12","text1":"12"},
+				{"value1":"p10","text1":"10"},
+				{"value1":"p8","text1":"8"},
+				{"value1":"p6","text1":"6"}
+			];
+			
+		    var j =0;
+			for( ; j <= arr.length-1;j++){
+				 pwObj.append("<option value='"+arr[j].value1+"'>"+arr[j].text1+"</option>");	
+			}
+		}
+		
+		//CN470
+		else if (rate1 == 3) {
+			$("#sweep").val(" ");
+			$("#sweep").prop('disabled',true);
+			var spObj1 = $("#speed");
+			var pwObj1 = $("#power");
+			
+	    	spObj1.empty();
+	    	$("#speed").prop('disabled',false);
+    		var data1 = [
+				{"value2":"a0","text2":""},
+				{"value2":"a1","text2":"DR0"},
+				{"value2":"a2","text2":"DR1"},
+				{"value2":"a3","text2":"DR2"},
+				{"value2":"a4","text2":"DR3"},
+				{"value2":"a5","text2":"DR4"},
+				{"value2":"a6","text2":"DR5"}
+				];
+    		var k = 0; 
+			for( ; k <= data1.length-1;k++){
+				 spObj1.append("<option value='"+data1[k].value2+"'>"+data1[k].text2+"</option>");	
+			}
+			    		
+			pwObj1.empty();	
+			var arr1 = [
+				{"value3":"p0","text3":""},
+				{"value3":"p20","text3":"20"},
+				{"value3":"p18","text3":"18"},
+				{"value3":"p16","text3":"16"},
+				{"value3":"p14","text3":"14"},
+				{"value3":"p12","text3":"12"},
+				{"value3":"p10","text3":"10"},
+				{"value3":"p8","text3":"8"},
+				{"value3":"p6","text3":"6"}
+				];
+		    var p =0;
+			for( ; p <= arr1.length-1;p++){
+				 pwObj1.append("<option value='"+arr1[p].value3+"'>"+arr1[p].text3+"</option>");	
+			}
+		}
+		
+		//EU868
+		else if (rate1 == 6) {
+			$("#sweep").val(" ");
+			$("#sweep").prop('disabled',true);
+			var spObj2 = $("#speed");
+			var pwObj2 = $("#power");
+	    	spObj2.empty();
+	    	$("#speed").prop('disabled',false);
+	    	var data2 = [
+					{"value3":"a0","text3":""},
+					{"value3":"a1","text3":"DR0"},
+					{"value3":"a2","text3":"DR1"},
+					{"value3":"a3","text3":"DR2"},
+					{"value3":"a4","text3":"DR3"},
+					{"value3":"a5","text3":"DR4"},
+					{"value3":"a6","text3":"DR5"},
+					{"value3":"a7","text3":"DR6"}
+			 ];
+	    	 var k1 = 0; 
+			 for( ; k1 <= data2.length-1;k1++){
+				spObj2.append("<option value='"+data2[k1].value3+"'>"+data2[k1].text3+"</option>");	
+			 }
+			
+			 pwObj2.empty();	
+			 var arr2 = [
+				 {"value4":"p0","text4":""},
+				 {"value4":"p16","text4":"16"},
+				 {"value4":"p14","text4":"14"},
+				 {"value4":"p12","text4":"12"},
+				 {"value4":"p10","text4":"10"},
+				 {"value4":"p8","text4":"8"},
+				 {"value4":"p6","text4":"6"}
+			 ];
+			
+		     var p1 =0;
+			 for( ; p1 <= arr2.length-1;p1++){
+				 pwObj2.append("<option value='"+arr2[p1].value4+"'>"+arr2[p1].text4+"</option>");	
+			 }
+		}
+		
+		//AS923  EU434
+		else if (rate1 == 4 || rate1 == 5) {
+			$("#sweep").val(" ");
+			$("#sweep").prop('disabled',true);
+			var spObj3 = $("#speed");
+			var pwObj3 = $("#power");
+	    	 spObj3.empty();
+	    	 $("#speed").prop('disabled',false);
+	    	 var data3 = [
+					{"value3":"a0","text3":""},
+					{"value3":"a1","text3":"DR0"},
+					{"value3":"a2","text3":"DR1"},
+					{"value3":"a3","text3":"DR2"},
+					{"value3":"a4","text3":"DR3"},
+					{"value3":"a5","text3":"DR4"},
+					{"value3":"a6","text3":"DR5"},
+					{"value3":"a7","text3":"DR6"}
+			  ];
+	    	 var k2 = 0; 
+			 for( ; k2 <= data3.length-1;k2++){
+				spObj3.append("<option value='"+data3[k2].value3+"'>"+data3[k2].text3+"</option>");	
+			 }
+			
+			pwObj3.empty();	
+			var arr3 = [
+				{"value5":"p0","text5":""},
+				{"value5":"p16","text5":"16"},
+				{"value5":"p14","text5":"14"},
+				{"value5":"p12","text5":"12"},
+				{"value5":"p10","text5":"10"},
+				{"value5":"p8","text5":"8"},
+				{"value5":"p6","text5":"6"}
+			];
+		    var p2 =0;
+			for( ; p2 <= arr3.length-1;p2++){
+				 pwObj3.append("<option value='"+arr3[p2].value5+"'>"+arr3[p2].text5+"</option>");	
+			}
+		}
+		
+		//US915  AU920
+		else if (rate1 == 1 || rate1 == 7) {
+			$("#sweep").val(" ");
+			$("#sweep").prop('disabled',true);
+			var spObj4 = $("#speed");
+			var pwObj4 = $("#power");
+			
+	    	spObj4.empty();
+	    	$("#speed").prop('disabled',false);
+	    	var data4 = [
+				{"value6":"a0","text6":""},
+				{"value6":"a1","text6":"DR0"},
+				{"value6":"a2","text6":"DR1"},
+				{"value6":"a3","text6":"DR2"},
+				{"value6":"a4","text6":"DR3"},
+				{"value6":"a5","text6":"DR4"},
+				{"value6":"a8","text6":"DR8"},
+				{"value6":"a9","text6":"DR9"},
+				{"value6":"a10","text6":"DR10"},
+				{"value6":"a11","text6":"DR11"},
+				{"value6":"a12","text6":"DR12"},
+				{"value6":"a13","text6":"DR13"}
+			];
+	    	var k3 = 0; 
+			for( ; k3 <= data4.length-1;k3++){
+				spObj4.append("<option value='"+data4[k3].value6+"'>"+data4[k3].text6+"</option>");	
+			}
+			
+			pwObj4.empty();	
+			var arr4 = [
+				{"value6":"p0","text6":""},
+				{"value6":"p30","text6":"30"},
+				{"value6":"p28","text6":"28"},
+				{"value6":"p26","text6":"26"},
+				{"value6":"p24","text6":"24"},
+				{"value6":"p22","text6":"22"},
+				{"value6":"p20","text6":"20"},
+				{"value6":"p18","text6":"18"},
+				{"value6":"p16","text6":"16"},
+				{"value6":"p14","text6":"14"},
+				{"value6":"p12","text6":"12"},
+				{"value6":"p10","text6":"10"}
+				];
+			
+		    var p3 =0;
+			for( ; p3 <= arr4.length-1;p3++){
+				 pwObj4.append("<option value='"+arr4[p3].value6+"'>"+arr4[p3].text6+"</option>");	
+			}
+		}
+	}
+	
+	//验证1
+	//通信 模式 
+	function checkInput2() {
+		var rt = $("#rate").val();
+		var devsel = $("#devsel").val();
+		var speed = $("#speed").find("option:selected").text();
+		if (devsel <= 0) {
+			alert("请选择设备！");
+			return false;
+		}
+		if (rt <= 0) {
+			alert("请选择速率制式 ！");
+			return false;
+		}
+		
+	   if(rt == 2) {
+			var sweep = $("#sweep").val();
+			if(sweep <= 0) {
+				alert("请选择扫频模式  ！");
+				return false;
+			}else {
+				var id = $('input:radio[name="no"]:checked').attr("id");
+				if(id == "1") {
+				    var power = $("#power").find("option:selected").text();
+				    if(power <= 0) {
+				    	alert("功率不能为空!");
+				    	return false;
+				    }
+				}else {
+			    	if(speed <= 0) {
+			    		alert("速率不能为空!");
+			    		return false;
+			    	}else {
+			    		var power = $("#power").find("option:selected").text();
+			    		if(power <= 0) {
+			    			alert("功率不能为空 !");
+			    			return false;
+			    		}
+				    }
+				}
+			}
+					    
+	   }else {
+		   var id = $('input:radio[name="no"]:checked').attr("id");
+		   if(id == "1") {
+		    	var power = $("#power").find("option:selected").text();
+		    	if(power <= 0) {
+		    		alert("功率不能为空!");
+		    		return false;
+		    	}
+		    }else {
+		    	var speed = $("#speed").find("option:selected").text();
+		    	if(speed <= 0) {
+		    		alert("速率不能为空!");
+		    		return false;
+		    	}else {
+		    		var power = $("#power").find("option:selected").text();
+		    		if(power <= 0) {
+		    			alert("功率不能为空 !");
+		    			return false;
+		    		}
+		    	}
+		     }
+    	 }
+
+		var connecting = {
+			 DEVEUI: $("#devsel").find("option:selected").text(),
+			 DRSCHEME: $("#rate").val(),
+			 CLAAMODE: $("#sweep").val(),
+			 ADR: $('input:radio[name="no"]:checked').attr("id"),
+			 DATARATE: speed.substr(2),
+			 POWER:  $("#power").find("option:selected").text()		 
+		};
+		//调用AJAX 
+		$.ajax({
+			async: false,
+			type: "POST",
+			url: "../DevCommSetting/doPost.do",
+			data: connecting,
+			success: function(data) {
+			    var status = eval("("+data+")");
+			    if (status == "0") {				    					 			    					 
+			    	alert("更新数据库成功！");	    					
+					}
+			    else if (status == "1") {				    					 			    					 
+			    	alert("设备从未上线,更新失败 ！");	    					
+					}
+			    else if (status == "2") {				    					 			    					 
+			    	alert("速率制式不支持 ！");	    					
+					}
+			    else if (status == "3") {				    					 			    					 
+			    	alert("数据更新失败 ！");	    					
+					}
+			    else if (status == "4") {				    					 			    					 
+			    	alert("数据未变化，无需更新数据库 ！");	    					
+					}
+			    else{
+					alert("数据格式不正确！" + status);
+				}
+			   }		
+	    });
+		return true;
+	}
+	
+	//验证2
+	//工作模式
+		function checkInput3() {
+			var week1 = $("#week1").val();
+			var week2 = $("#week2").val();
+			var wk1 = Number(week1);
+			var wk2 = Number(week2);
+	
+			var devsel = $("#devsel").val();
+			if (devsel <= 0) {
+				alert("请选择设备！");
+				return false;
+			}
+			
+			if (week1 == "") {
+				alert("位置上报周期不能为空  ！");
+				return false;
+			}
+			if(wk1 < 0 || wk1 > 655350) {
+				alert("位置上报周期范围应在0-655350");
+				return false;
+			}
+			if (week2 == "") {
+				alert("心跳上报周期不能为空  ！");
+				return false;
+			}
+			if(wk2 < 0 || wk2 > 7650) {
+				alert("心跳上报周期范围应在0-7650");
+				return false;
+			}
+			
+			var los = $('input:radio[name="no1"]:checked').attr("id");
+			var sel = $('input:radio[name="no2"]:checked').attr("id");
+			var of = $('input:radio[name="no3"]:checked').attr("id");
+			var alt = $('input:radio[name="no4"]:checked').attr("id");
+			
+			los = los.charAt(los.length-1);
+			sel = sel.charAt(sel.length-1);
+			of = of.charAt(of.length-1);
+			alt = alt.charAt(alt.length-1);
+			
+			var work = {
+				 DEVEUI: $("#devsel").find("option:selected").text(),
+				 LOSTPOINT: los,
+				 SELFADAPT: sel,
+				 ONEOFF: of,
+				 ALREPORT: alt,
+				 GPS: $("#week1").val(),
+				 HEARTBEAT: $("#week2").val()		 
+			};
+			//调用AJAX 
+			$.ajax({
+					async: false,
+					type: "POST",
+					url: "../DevWorkSetting/doPost.do",
+					data: work,
+					success: function(data) {
+					    var status = eval("("+data+")");
+					    if (status == "0") {				    					 			    					 
+					    	alert("更新数据库成功！");	    					
+							}
+					    else if (status == "1") {				    					 			    					 
+					    	alert("设备从未上线,更新失败 ！");	    					
+							}
+					    else if (status == "2") {				    					 			    					 
+					    	alert("速率制式不支持 ！");	    					
+							}
+					    else if (status == "3") {				    					 			    					 
+					    	alert("数据更新失败 ！");	    					
+							}
+					    else if (status == "4") {				    					 			    					 
+					    	alert("数据未变化，无需更新数据库 ！");	    					
+							}
+					    else{
+							alert("数据格式不正确！" + status);
+						}
+					   }		
+		       });
+			return true;
+		}
+	
+</script>
+
+<div align="left">
+	<form id="selfConfigForm" onsubmit="return false;" style="margin-left:28%;margin-top:5%">
+	    <fieldset style="width: 62%; text-align: center;margin-bottom:30px">
+			<legend id="warningTime" style="font-size:18px;">选择设备</legend>
+	        <select id="devsel" style="width:80%;height:30px;"> </select>
+	    </fieldset>
+	    
+		<fieldset style="width: 62%; text-align: left;margin-bottom:30px">
+			<legend id="warningTime" style="font-size:18px;">通信参数设置</legend>
+			<table style="width:100%">					
+				<tr>
+					<td align="right" style="width:30%;font-size:14px">速率制式：</td>
+					<td>
+					<select id="rate" style="width:35%;height:20px;" onchange="change()">
+					       <option value="0"></option>
+					       <option value="1">AU920</option>
+					       <option value="2">CLAA</option> 
+					       <option value="3">CN470</option> 
+					       <option value="4">AS923</option> 
+					       <option value="5">EU434</option> 
+					       <option value="6">EU868</option> 
+					       <option value="7">US915</option>  
+			       </select>
+				   </td>
+				</tr>
+				<tr>
+					<td align="right"  style="width:30%;font-size:14px">扫频模式：</td>
+					<td>
+					<select id="sweep" style="width:30%;height:20px;">
+					   <option value="0"></option>
+					   <option value="1">A模式</option>
+				       <option value="2">B模式</option> 
+				       <option value="3">C模式</option> 
+				       <option value="4">D模式</option> 
+				       <option value="5">E模式</option> 
+				       <option value="6">全屏扫描</option>  
+					</select>
+					</td>
+				</tr>			
+				<tr>
+					<td align="right"  style="width:30%;font-size:14px">速率自适应：</td>
+					<td>
+					<div id="pp">
+					<input id="1" type="radio" name="no" value="no">&nbsp;开&nbsp;&nbsp;&nbsp;
+					<input id="0" type="radio" name="no" value="off" checked="checked">关
+					</div>
+					</td>
+				</tr>
+				<tr>
+				
+				    <td align="right" style="width:5%;font-size:14px" valign="top"> 速率：</td>
+				    <td>
+					<select id="speed" style="width:25%;height:20px;">
+						<option value=""></option>
+					</select>
+					</td>
+				</tr>	
+				<tr>
+				
+				    <td align="right" style="width:30%;font-size:14px" valign="top">功率：</td>
+					<td>
+					<select id="power" style="width:20%;height:20px;">
+						<option value="1"></option>
+					</select>
+					</td>
+				</tr>			
+			</table>
+			
+			<div style="width:60%;" align="right">
+				<input type="button" name="sure1" value="确定" class="button_blue" style="margin-right:40%;width:20%" onclick="return checkInput2();" />
+		    </div>
+		</fieldset>
+		
+		<fieldset style="width: 62%; text-align: left;margin-bottom:30px">
+			<legend id="warningTime" style="font-size:18px;">工作模式设置</legend>
+			<table style="width:100%">	
+			    <tr>
+					<td align="right"  style="width:20%;font-size:14px">断点续传：</td>
+					<td style="width:70%;">
+					<div id="pp3">
+					<input id="11" type="radio" name="no1" value="no1">开&nbsp;&nbsp;&nbsp;
+					<input id="10" type="radio" name="no1" checked="checked" value="off1">关  
+					</div>
+					</td>
+				</tr>
+				<tr>
+					<td align="right"  style="width:20%;font-size:14px">自主工作：</td>
+					<td>
+					<div id="pp2">
+					<input id="21" type="radio" name="no2" value="no2">开&nbsp;&nbsp;&nbsp;
+					<input id="20" type="radio" name="no2" checked="checked" value="off2">关 
+					
+					</div>
+					</td>
+				</tr>
+				<tr>
+					<td align="right"  style="width:20%;font-size:14px">单次上报：</td>
+					<td>
+					<div id="pp1">
+					<input id="31" type="radio" name="no3" value="no3">开&nbsp;&nbsp;&nbsp;
+					<input id="30" type="radio" name="no3" checked="checked" value="off3">关
+					
+					</div>
+					</td>
+				</tr>
+				<tr>
+					<td align="right"  style="width:20%;font-size:14px">智能上报：</td>
+					<td>
+					<div id="pp4">
+					<input id="41" type="radio" name="no4" value="no4">开&nbsp;&nbsp;&nbsp;
+					<input id="40" type="radio" name="no4" checked="checked" value="off4">关
+					
+					</div>
+					</td>
+				</tr>
+				<tr>
+					<td align="right"  style="width:20%;font-size:14px">位置上报周期：</td>
+					<td>
+					<input id="week1" type="text" style="width:80px;">x10秒&nbsp;&nbsp;
+					
+					</td>
+				</tr>
+				<tr>
+					<td align="right"  style="width:20%;font-size:14px">心跳上报周期：</td>
+					<td><input id="week2" type="text" style="width:80px;">x30秒&nbsp;&nbsp;
+					</td>
+				</tr>
+			</table>
+			<div style="width:60%;" align="right">
+				<input type="button" name="sure2" value="确定" class="button_blue" style="margin-right:40%;width:20%" onclick="return checkInput3();" />
+		    </div>
+		</fieldset>
+	</form>
+</div>  
+</body>
+
+</html>

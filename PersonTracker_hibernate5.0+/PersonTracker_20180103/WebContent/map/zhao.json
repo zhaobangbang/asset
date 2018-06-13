@@ -1,0 +1,14 @@
+{"type": "FeatureCollection",
+	"features": [
+   		{"properties":
+   			{
+   				"x": 0,
+   			"y": 0,
+       		"width": 1080,
+       		"height": 1175,
+       		"mapType": "svg",
+       			"imageurl": "http://192.168.2.151:8080/PersonTracker/map/zhao.svg"
+      	 	}
+      	 }
+      ]
+    }

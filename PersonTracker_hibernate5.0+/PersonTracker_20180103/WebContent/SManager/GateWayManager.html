@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../js/grid.locale-cn.js"></script>
+    <script type="text/javascript" src="../js/jquery.jqGrid.min.js"></script>
+    
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/ui.jqgrid.css" />
+    <link rel="SHORTCUT ICON" href="../image/favicon.ico"/>
+<title>网关管理</title>
+<style>
+	html,body {
+		font-size: 75%;
+	}
+</style>
+</head>
+<body>
+	<table id="jqGridGate"></table>
+	<div id="jqGridPagerGate"></div>
+	
+	<script type="text/javascript">
+		function GetQueryString(name) {
+		   var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+		   var r = window.location.search.substr(1).match(reg);
+		   if (r!=null) return (r[2]); return null;
+		}
+		var inputName = GetQueryString("name");
+		
+		function refreshField(mode) {
+	    	$.get("../FieldManager/doGet.do", function(str) {
+	                    var fieldSel = $("select#field");
+	                    fieldSel.empty();
+	                    fieldSel.append(str);
+	                    if (mode == "edit") {
+	                    	fieldSel.val(fieldSelected);
+	    	            }
+	                }
+	           );
+	    }
+		
+		var fieldSelected;
+			
+		function rowClicked(rowid, icol, cellCont) {
+			var rowData = $("#jqGridGate").jqGrid("getRowData",rowid);
+			fieldSelected = rowData.field;
+		}
+		
+		function validBeforeSubmit(postData, formid) {
+			 var qfield = $("#field").val();
+			 
+			 var field;
+
+			 $.ajax({
+   			 async: false,
+   			 type: "GET",
+   			 url: "../FieldManager/doGet.do?name=" + qfield,
+   			 success: function(data) {
+    				field = eval("(" + data + ")");
+    				postData.field = field;
+   			 }
+            });
+			 
+		 	return [true,"success"];	
+		 }
+		
+		$(document).ready(function() {
+		jQuery("#jqGridGate").jqGrid({
+	        url:"../GateWayManager/doPost.do",
+	        datatype: "json",
+	        mtype:"POST",
+	        height: 'auto',
+	    	autowidth:true, 
+	        colNames:[ '网关ID', '基站名称','基站编号','基站型号','所属工地','终端数量'],
+	        colModel:[
+				{name:"id",index:"id", width:50,align:"center",editable:false, hidden:true},
+	            {name:"name",index:"name", width:300, align:"center",editable:true},
+	            {name:"sn",index:"sn", width:300, align:"center",editable:true},
+	            {name:"type",index:"type", width:200, align:"center",editable:true},
+	            {name:"field",index:"field",align:"center",editable:true,edittype:"select", editoptions:{value: ":"}},
+	            {name:"motenumber",index:"motenumber", width:300, align:"center",editable:false},
+	        ],
+	        pager:"#jqGridPagerGate",
+	        rowNum: 8,  //设置行数
+	        viewrecords:true,//总记录数
+	        onCellSelect:rowClicked,
+	        jsonReader:{
+	            repeatitems:false
+	            },
+	        editurl:"../GateWayManager/doPost.do"
+	    });
+		
+		jQuery("#jqGridGate").jqGrid('navGrid', '#jqGridPagerGate',
+    			{edittext: '编辑', addtext: '添加', deltext: '删除', search:false
+            	},
+	            {
+	            	reloadAfterSubmit : true,
+	            	closeOnEscape:true,
+	            	closeAfterEdit:true,
+	            	beforeSubmit: validBeforeSubmit,
+	            	beforeShowForm: function(formid) {
+	                	refreshField("edit");
+	            	}
+	            },//edit options
+	            {  
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            	closeOnEscape:true,
+	                closeAfterAdd:true,
+	                beforeSubmit: validBeforeSubmit,
+	                beforeShowForm: function(formid) {
+	                	refreshField("add");
+	            	}
+	            },//add options
+	            {  
+	            	closeOnEscape:true,
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            }, //del options
+	            {}, //search option
+	            {}
+	    );
+		});
+</script>
+</body>
+</html>

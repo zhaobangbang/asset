@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2018-1-4 14:43:44 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+    <class name="com.lansitec.dao.beans.LogRecord" table="log_record_tbl" dynamic-insert="true" dynamic-update="true">
+        <id name="id" type="java.lang.Integer">
+            <column name="ID" />
+            <generator class="native"/>
+        </id>
+        <property name="user" type="java.lang.String">
+            <column name="USER" />
+        </property>
+        <property name="obj" access="field">
+            <column name="OBJ" />
+            <type name="org.hibernate.type.EnumType">
+                <param name="type">12</param>
+                <param name="enumClass">com.lansitec.enumlist.LogObj</param>
+            </type>
+        </property>
+        <property name="type" access="field">
+            <column name="TYPE" />
+            <type name="org.hibernate.type.EnumType">
+                <param name="type">12</param>
+                <param name="enumClass">com.lansitec.enumlist.LogType</param>
+            </type>
+        </property>
+        <property name="name" type="java.lang.String">
+            <column name="NAME" />
+        </property>
+        <property name="content" type="java.lang.String">
+            <column name="CONTENT" />
+        </property>
+        <property name="time" type="java.time.LocalDateTime">
+            <column name="TIME" />
+        </property>
+    </class>
+</hibernate-mapping>

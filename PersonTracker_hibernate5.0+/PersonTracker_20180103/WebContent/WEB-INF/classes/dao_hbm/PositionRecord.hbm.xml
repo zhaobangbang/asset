@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2018-1-16 20:26:58 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+    <class name="com.lansitec.dao.beans.PositionRecord" table="position_record_tbl" dynamic-insert="true" dynamic-update="true">
+        <id name="id" type="java.lang.Integer">
+            <column name="ID" />
+            <generator class="native"/>
+        </id>
+        <property name="deveui" type="java.lang.String">
+            <column name="DEVEUI" />
+        </property>
+        <property name="mapid" type="java.lang.String">
+            <column name="MAPID" />
+        </property>
+        <property name="x" type="float">
+            <column name="X" />
+        </property>
+        <property name="y" type="float">
+            <column name="Y" />
+        </property>
+        <property name="time" type="java.time.LocalDateTime">
+            <column name="TIME" />
+        </property>
+    </class>
+</hibernate-mapping>

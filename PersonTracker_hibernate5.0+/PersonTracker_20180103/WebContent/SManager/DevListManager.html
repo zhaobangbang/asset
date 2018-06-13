@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../js/grid.locale-cn.js"></script>
+    <script type="text/javascript" src="../js/jquery.jqGrid.src.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/ui.jqgrid.css" />
+    <link rel="SHORTCUT ICON" href="../image/favicon.ico"/>
+<title>终端管理</title>
+<style>
+	html,body {
+		font-size: 75%;
+	}
+</style>
+</head>
+<body>
+	<div> 
+		<div id="query"> 
+	    	<input type="submit" class="btn" style="background-color:#e3e1e2;" value="设备号" disabled="disabled"/>
+	    	<input type="text" class="input" id="qdeveui" style="width:140px;"/> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	    	<input type="submit" class="btn" id="find_btn" style="background-color:#7ebfb7;" value="查 询" onclick="triggerQueryJQGrid();"/> 
+	    	<input type="submit" class="btn" id="clear_btn" style="background-color:#7ebfb7;" value="重置" onclick="triggerClearQueryJQGrid();"/> 
+	    </div>
+		<p></p>
+		<table id="jqGridDev"></table>
+		<div id="jqGridPagerDev"></div>
+	</div>
+	
+	<script type="text/javascript">
+	     
+	    //查询 
+		function GetQueryString(name) {
+	    	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+	    	var r = window.location.search.substr(1).match(reg);
+	    	if (r!=null) return (r[2]); return null;
+	   }
+		
+	    
+		/*用于触发按钮查询*/	
+	   function triggerQueryJQGrid() {
+		    var deveui = $("#qdeveui").val();
+			if (deveui == "") {
+				return;
+			}
+			
+			var curPostData = $("#jqGridDev").getGridParam("postData");
+			$("#jqGridDev").jqGrid('setGridParam',{
+				url:"../DeviceListMgr/doPost.do?usrname="+ GetQueryString("name") + "&deveui=" + deveui,
+				page:1
+			}).trigger('reloadGrid');
+		}
+		
+	   /*用于触发重置查询*/ 
+	   function triggerClearQueryJQGrid() {
+			 $("#qdeveui").val("");
+			
+			var curPostData = $("#jqGridDev").getGridParam("postData");
+			delete curPostData["deveui"];
+			
+			$("#jqGridDev").jqGrid('setGridParam',{
+				url:"../DeviceListMgr/doPost.do?usrname="+GetQueryString("name")
+			}).trigger('reloadGrid'); 
+
+	   }
+	   
+	   function refreshField(mode) {
+			var fieldSel = $("select#field");			
+			$.get("../FieldManager/doGet.do", function(str) {
+				fieldSel.empty();
+				fieldSel.append(str);
+		        	
+		        if (mode == "edit") {
+		        	fieldSel.val(fieldSelected);
+		        }
+		        refreshMap(fieldSel.val(), mode);
+			});				
+		}
+	   
+	   function refreshMap(fieldSelect,mode) {
+			var mapSel = $("select#mapid");			
+			$.get("../GetMapInfo/doGet.do?fieldName="+encodeURIComponent(fieldSelect,'UTF-8'), function(str) {
+				mapSel.empty();
+				mapSel.append(str);
+		        	
+		        if (mode == "edit") {
+		        	mapSel.val(mapSelected);
+		        }
+			});				
+		}
+
+	  /* function refreshdevType(mode) {
+		   var devTypeSel = $("#devtype");
+		   if(mode == "edit") {
+	        	devTypeSel.val(devTypeSelected);
+	        }
+		}
+	   
+	   function refreshOwner(mode) {
+		   var ownerSel = $("#owner");
+		   if(mode == "edit") {
+	        	ownerSel.val(ownerSelected);
+	        }
+		}*/
+	   
+	   function validBeforeSubmit(postData, formid) {
+			postData.owner = ownerSelected;
+			postData.devtype = devTypeSelected;
+			
+			 var qfield = $("#field").val();
+			 var qmapid = $("#mapid").val();
+			 
+			 var field, mapid;
+
+			 $.ajax({
+	   			 async: false,
+	   			 type: "GET",
+	   			 url: "../FieldManager/doGet.do?name=" + qfield,
+	   			 success: function(data) {
+	    				field = eval("(" + data + ")");
+	    				postData.field = field;
+	   			 }
+            });
+			 
+			 $.ajax({
+	   			 async: false,
+	   			 type: "GET",
+	   			 url: "../GetMapInfo/doGet.do?name=" + qmapid,
+	   			 success: function(data) {
+	   					mapid = eval("(" + data + ")");
+	    				postData.mapid = mapid;
+	   			 }
+            });
+			 
+			var data = postData;
+				 var number = postData.number;
+				 delete postData["number"];
+				 var deveui = postData.deveui;
+				 
+				 if(number > 1) {
+					 for(i=1;i<number;i++) {
+						 deveui1 = postData.deveui;
+						 deveui2 = deveui1.substring(0,12);
+						 deveui3 = deveui1.substring(12);
+						 
+						 data = parseInt(deveui3,16);
+						 data = data+1;
+						 data = parseInt(data).toString(16);
+						 
+						 if(data.length == 1) {
+							 data = "000"+data;
+						 }else if(data.length == 2) {
+							 data = "00"+data;
+						 }else if(data.length == 3) {
+							 data = "0"+data; 
+						 }
+						 postData.deveui = deveui2+data;
+						 deveui = deveui+','+postData.deveui;
+					 }
+					 
+					 postData.deveui = deveui;
+					 return [true,"success"];
+					 
+				 }else{
+					 return [true,"success"]; 
+				 }
+				
+		 }
+	   
+	   var fieldSelected;
+	   var mapSelected;
+	   var devTypeSelected;
+	   var ownerSelected;
+		
+		function rowClicked(rowid, icol, cellCont) {
+			var rowData = $("#jqGridDev").jqGrid("getRowData",rowid);
+			fieldSelected = rowData.field;
+			mapSelected = rowData.mapid;
+			devTypeSelected = rowData.devtype;
+			ownerSelected = rowData.owner;
+		}
+	   
+		
+	   $(document).ready(function() {
+		   var inputName = GetQueryString("name");
+		   jQuery("#jqGridDev").jqGrid({
+	          datatype: "json",
+	    	  mtype:"POST",
+	    	  autowidth: true,
+	    	  height: 'auto',
+   	          colNames:[ '设备ID', '设备号','设备类型','所属工地','创建时间','所有人','别名','电池状态','RSSI','SNR','数据更新时间','所在地图','入场时间','出场时间','备注','终端数量'],  
+   	          colModel:[
+   				 {name:"id",index:"id", width:50,align:"center",editable:false, hidden:true},
+   	             {name:"deveui",index:"deveui", width:150, align:"center",sortable:true,editable:true},
+   	             {name:"devtype",index:"devtype", width:50, align:"center",editable:false},      
+   	             {name:"field",index:"field", width:50, align:"center",sortable:true,editable:true,
+    	            	edittype:"select", editoptions:{value:":",
+    	        			dataEvents: [{
+    	        			            type: 'change', fn: function(e) {
+    	        			            	refreshMap(this.value);
+    	        			            }
+    	        			          }]
+    	            	}
+   	             },
+   	             {name:"recv",index:"recv", width:50,align:"center",editable:false, hidden:false,
+   	            	formatter:function(cellvalue, options, row){
+   	            		var year = cellvalue.year;
+   	            		var month = cellvalue.monthValue;
+   	            		var day = cellvalue.dayOfMonth;
+   	            		if(month < 10){
+   	            			month = "0" + month;
+   	            		}
+   	            		if(day < 10){
+   	            			day = "0" + day;
+   	            		}
+   	            		var str = "-";
+   	            		return year + str + month + str + day;
+       	 			}
+   	             },
+   	             {name:"owner",index:"owner", width:50, align:"center",editable:false},
+   	             {name:"alias",index:"alias", width:100, align:"center",editable:false, hidden:true},
+   	             {name:"battery",index:"battery", width:100, align:"center",editable:false}, 
+   	             {name:"rssi",index:"rssi", width:100, align:"center",editable:false},
+   	             {name:"snr",index:"snr", width:100, align:"center",editable:false},
+   	             {name:"statustime",index:"statustime", width:100, align:"center",editable:false,
+   	            	formatter:function(cellvalue, options, row){
+   	            		var year = cellvalue.year;
+		   	      		var month = cellvalue.monthValue;
+		   	      		var day = cellvalue.dayOfMonth;
+		   	      		var hour = cellvalue.hour;
+		   	      		var minute = cellvalue.minute;
+		   	      		var second = cellvalue.second;
+		   	      		if(month < 10){
+	            			month = "0" + month;
+	            		}
+	            		if(day < 10){
+	            			day = "0" + day;
+	            		}
+	            		if(hour < 10){
+	            			hour = "0" + hour;
+	            		}
+	            		if(minute < 10){
+	            			minute = "0" + minute;
+	            		}
+	            		if(second < 10){
+	            			second = "0" + second;
+	            		}
+		   	      		var str = "-";
+		   	      		var str1 = ":";
+		   	      		return year + str + month + str + day + " " + hour + str1 + minute + str1 + second;
+   	            	}
+   	             },
+   	          	 {name:"mapid",index:"mapid", width:50, align:"center",sortable:true,editable:true,
+    	            	edittype:"select", editoptions:{value:":"}},
+   	             {name:"entertime",index:"entertime", width:100, align:"center",editable:false,
+    	   	            	formatter:function(cellvalue, options, row){
+    	   	            		var year = cellvalue.year;
+    			   	      		var month = cellvalue.monthValue;
+    			   	      		var day = cellvalue.dayOfMonth;
+    			   	      		var hour = cellvalue.hour;
+    			   	      		var minute = cellvalue.minute;
+    			   	      		var second = cellvalue.second;
+    			   	      		if(month < 10){
+    		            			month = "0" + month;
+    		            		}
+    		            		if(day < 10){
+    		            			day = "0" + day;
+    		            		}
+    		            		if(hour < 10){
+    		            			hour = "0" + hour;
+    		            		}
+    		            		if(minute < 10){
+    		            			minute = "0" + minute;
+    		            		}
+    		            		if(second < 10){
+    		            			second = "0" + second;
+    		            		}
+    			   	      		var str = "-";
+    			   	      		var str1 = ":";
+    			   	      		return year + str + month + str + day + " " + hour + str1 + minute + str1 + second;
+    	   	            	}
+    	          },
+   	             {name:"exittime",index:"exittime", width:100, align:"center",editable:false,
+     	            	formatter:function(cellvalue, options, row){
+       	            		var year = cellvalue.year;
+    		   	      		var month = cellvalue.monthValue;
+    		   	      		var day = cellvalue.dayOfMonth;
+    		   	      		var hour = cellvalue.hour;
+    		   	      		var minute = cellvalue.minute;
+    		   	      		var second = cellvalue.second;
+    		   	      		if(month < 10){
+    	            			month = "0" + month;
+    	            		}
+    	            		if(day < 10){
+    	            			day = "0" + day;
+    	            		}
+    	            		if(hour < 10){
+    	            			hour = "0" + hour;
+    	            		}
+    	            		if(minute < 10){
+    	            			minute = "0" + minute;
+    	            		}
+    	            		if(second < 10){
+    	            			second = "0" + second;
+    	            		}
+    		   	      		var str = "-";
+    		   	      		var str1 = ":";
+    		   	      		return year + str + month + str + day + " " + hour + str1 + minute + str1 + second;
+       	            	}
+    	          },
+   	             {name:"memo",index:"memo", width:200, align:"center",editable:true},
+   	          	 {name:'number',index:'number', hidden:true, editable:true, editrules: { edithidden: true },align:"center",sortable:true,width:30}
+   	         ],
+	    	 url: "../DeviceListMgr/doPost.do?usrname="+inputName,  
+	    	 editurl:"../DeviceListMgr/doPost.do?usrname="+inputName, 
+	    	 pager:"#jqGridPagerDev",
+	    	 rowNum: 20,  //设置行数
+	    	 viewrecords:true,//总记录数
+	    	 onCellSelect:rowClicked,
+	    	 jsonReader:{
+	             repeatitems:false
+	         },
+	     });
+		   
+		   jQuery("#jqGridDev").jqGrid('navGrid', '#jqGridPagerDev',{edittext: '编辑', addtext: '添加', deltext: '删除', search: false},{
+	        	reloadAfterSubmit : true,
+	            closeAfterEdit:true,
+	            closeOnEscape:true,
+	            beforeSubmit: validBeforeSubmit,
+	            beforeShowForm: function(formid) {
+	            	//var number = formid[0][5];
+	            	refreshField("edit");
+	            }
+	          },//edit options
+	          {  
+	               reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	               closeAfterAdd:true,
+	               closeOnEscape:true,
+	               beforeSubmit: validBeforeSubmit,
+	               beforeShowForm: function(formid) {
+	            	   refreshField("add");
+	               }
+	           },//add options
+	           {  
+	            	closeOnEscape:true,
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	           }, //del options
+	           {}, //search option
+	           {}
+	       ); 
+	 });
+	   
+	   function format(cellvalue) {
+      		/*var year = cellvalue.year;
+      		var month = cellvalue.monthValue;
+      		var day = cellvalue.dayOfMonth;
+      		var hour = cellvalue.hour;
+      		var minute = cellvalue.minute;
+      		var second = cellvalue.second;
+      		var str = "-";
+      		var str1 = ":";
+      		return year + str + month + str + day + " " + hour + str1 + minute + str1 + second;*/
+      		alert(2);
+			}
+  </script>
+</body>
+</html>

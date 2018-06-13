@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2018-2-12 15:08:31 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+    <class name="com.lansitec.dao.beans.Beacons" table="beacons_tbl">
+        <id name="id" type="java.lang.Integer">
+            <column name="ID" />
+            <generator class="native" />
+        </id>
+        <property name="sn" type="java.lang.String">
+            <column name="SN" />
+        </property>
+        <property name="alias" type="java.lang.String">
+            <column name="ALIAS" />
+        </property>
+        <property name="mapid" type="java.lang.String">
+            <column name="MAPID" />
+        </property>
+        <property name="x" type="float">
+            <column name="X" />
+        </property>
+        <property name="y" type="float">
+            <column name="Y" />
+        </property>
+        <property name="rssi1" type="byte">
+            <column name="RSSI1" />
+        </property>
+        <property name="rssi2" type="byte">
+            <column name="RSSI2" />
+        </property>
+        <property name="a" type="float">
+            <column name="A" />
+        </property>
+        <property name="n" type="float">
+            <column name="N" />
+        </property>
+        <property name="alarmtype">
+            <column name="ALARMTYPE" />
+            <type name="org.hibernate.type.EnumType">
+                <param name="type">12</param>
+                <param name="enumClass">com.lansitec.enumlist.Alarmtype</param>
+            </type>
+        </property>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+                                         "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+ <session-factory name="asset">
+  <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+  <property name="hibernate.connection.password">lansi2016</property>
+  <property name="hibernate.connection.url">jdbc:mysql://rm-m5eb9dwj48o96ca37.mysql.rds.aliyuncs.com:3306/assettest?useUnicode=true&amp;characterEncoding=UTF8</property>
+  <property name="hibernate.connection.username">lansiadmin</property>
+  <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+  <property name="hibernate.current_session_context_class">thread</property>
+  <property name="hibernate.connection.provider_class">org.hibernate.connection.C3P0ConnectionProvider</property>
+  <property name="hibernate.temp.use_jdbc_metadata_defaults">false</property>
+  <property name="hibernate.c3p0.min_size">2</property>
+  <property name="hibernate.c3p0.max_size">5</property>
+  <property name="hibernate.c3p0.timeout">7200</property>
+  <property name="hibernate.c3p0.testConnectionOnCheckout">false</property>
+  <property name="Show_SQL">true</property>
+  <property name="format_sql">true</property>
+  <mapping resource="dao_hbm/Beacons.hbm.xml"/>
+  <mapping resource="dao_hbm/Zwwldevices.hbm.xml"/>
+  <mapping resource="dao_hbm/GpsData.hbm.xml"/>
+  <mapping resource="dao_hbm/ZwwlDevsUseInfo.hbm.xml"/>
+  <mapping resource="dao_hbm/DevConfig.hbm.xml"/>
+ </session-factory>
+</hibernate-configuration>

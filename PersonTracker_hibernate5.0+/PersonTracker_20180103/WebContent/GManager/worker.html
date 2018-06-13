@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="../js/grid.locale-cn.js"></script>
+    <script type="text/javascript" src="../js/jquery.jqGrid.src.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/ui.jqgrid.css" />
+    <link rel="stylesheet" type="text/css" href="../css/jquery.my-modal.1.1.winStyle.css" />
+    <link rel="SHORTCUT ICON" href="../image/favicon.ico"/>
+	<title>工人信息</title>
+	<style>
+		html,body {
+			font-size: 75%;
+		}
+	</style>
+</head>
+<body>
+	<div id="query"> 
+    	<input type="submit" class="btn" style="background-color:#e3e1e2;" value="姓名" disabled="disabled"/>
+    	<input type="text" class="input" id="qName" style="width:140px;"/> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    	<input type="submit" class="btn" id="find_btn" style="background-color:#7ebfb7;" value="查 询" onclick="triggerQueryJQGrid();"/> 
+    	<input type="submit" class="btn" id="clear_btn" style="background-color:#7ebfb7;" value="重置" onclick="triggerClearQueryJQGrid();"/> 
+    	&nbsp;&nbsp;&nbsp;&nbsp;
+    	<button style="background-color:#7ebfb7;" value="添加" onclick="addWin();">添加</button>
+	</div>
+	<p></p>
+	<table id="jqGridWork"></table>
+	<div id="jqGridPagerWork"></div>
+	<div class="m-modal">
+		<div class="m-modal-dialog">
+			<div class="m-top">
+				<h4 class="m-modal-title">
+					工人基本信息
+				</h4>
+				<span class="m-modal-close">&times;</span>
+			</div>
+			<div class="m-middle">
+				<p>&nbsp;姓&nbsp;&nbsp;名:&nbsp;<input id="editName" type="text" /></p>
+				<p>&nbsp;施工队:&nbsp;<select id="editCon">
+						</select>
+				</p>
+				<p>&nbsp;工&nbsp;&nbsp;种:&nbsp;<select id="editType">
+							<option value=""> </option>
+						 	<option value="泥瓦工">泥瓦工</option>
+						 	<option value="水电工">水电工</option>
+						 	<option value="木工">木工</option>
+						</select>
+				</p>
+				<p>&nbsp;状&nbsp;&nbsp;态:&nbsp;<select id="editStatus">
+							<option value=""> </option>
+						 	<option value="在岗">在岗</option>
+						 	<option value="离职">离职</option>
+						 	<option value="休假">休假</option>
+						 	<option value="病假">病假</option>
+						</select>
+				</p>
+				<p id="IdPicture">&nbsp;头&nbsp;&nbsp;像:&nbsp;
+					<input type="file" id="editPicture" name="file" />
+				</p>
+				<p id="IdDev">&nbsp;设备号:&nbsp;<input id="editDeveui" type="text"></p>
+				<p>&nbsp;联系方式:&nbsp;<input id="editTel" type="text"></p>
+				<p>&nbsp;备注:&nbsp;<input id="editMemo" type="text"></p>
+			</div>
+			<div class="m-bottom">
+				<button id="add" class="m-btn-add" onclick="addOper();">确定</button>
+				<button id="edit" class="m-btn-edit" onclick="editOper();">编辑</button>
+				<button id="del" class="m-btn-del" onclick="delOper();">删除</button>
+				<button class="m-btn-cancel">取消</button>
+			</div>
+		</div>
+	</div>
+	
+	<script type="text/javascript" src="../js/jquery.my-modal.1.1.js"></script>
+	<script type="text/javascript">
+		var oper = null;
+		var c_sn = null;
+		var w_sn = null;
+		var con_name = null;
+		var id = null;
+		
+		function GetQueryString(name) {
+	    	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+	    	var r = window.location.search.substr(1).match(reg);
+	    	if (r!=null) return (r[2]); return null;
+		}
+		var inputName = GetQueryString("name");
+		
+		var select = $("select##editCon");	
+ 	    $.get("../ConstructionManager/doGet.do?username="+inputName, function(str) {
+    		 select.empty();
+    		 select.append(str);
+		});
+ 	    
+ 	   /*用于触发按钮查询*/	
+ 	   function triggerQueryJQGrid() {
+ 		    var name = $("#qName").val();
+ 			if (name == "") {
+ 				return;
+ 			}
+ 			
+ 			var curPostData = $("#jqGridWork").getGridParam("postData");
+ 			$("#jqGridWork").jqGrid('setGridParam',{
+ 				url:"../WorkerManager/doPost.do?username="+inputName + "&workname=" + name,
+ 				page:1
+ 			}).trigger('reloadGrid');
+ 		}
+ 		
+ 	   /*用于触发重置查询*/ 
+ 	   function triggerClearQueryJQGrid() {
+ 			$("#qName").val("");
+ 			
+ 			var curPostData = $("#jqGridWork").getGridParam("postData");
+ 			delete curPostData["name"];
+ 			
+ 			$("#jqGridWork").jqGrid('setGridParam',{
+ 				url:"../WorkerManager/doPost.do?username="+inputName
+ 			}).trigger('reloadGrid'); 
+
+ 	   }
+ 	   
+ 	   //根据施工队名称获取sn
+ 	   function conSn() {
+ 		  var c_name = $("#editCon").val();
+		  $.ajax({
+			 async: false,
+			 type: "GET",
+			 url: "../ConstructionManager/doGet.do?c_name=" + c_name,
+			 success: function(data) {
+  				c_sn = eval("(" + data + ")");
+			 }
+          });
+ 	   }
+ 	   
+ 	   var m1 = null;
+ 	   /*用于触发添加事件*/
+ 	   function addWin() {
+ 		  m1 = new MyModal.modal(function() {
+  
+		  });
+ 		  
+ 		  $("#IdPicture").css('display','block');
+ 		  $("#upload").css('display','block');
+ 		  $("#IdDev").css('display','none');
+ 		  $("#add").css('display','block');
+ 		  $("#del").css('display','none');
+ 		  $("#edit").css('display','none');
+ 		  
+ 		  $("#editName").val("");
+ 		  $("#editType").val("");
+ 		  $("#editStatus").val("");
+ 		  $("#editTel").val("");
+ 		  $("#editPicture").val("");
+ 		  $("#upload").val("");
+ 		  $("#editMemo").val("");
+ 		 
+		  m1.show();
+ 	   }
+ 	   
+ 	   //点击确定触发事件 
+ 	   function addOper() {
+ 		     conSn();
+			 oper = "add";
+			 var AddInfo = {
+				 workname: $("#editName").val(),
+				 c_sn: c_sn,
+				 w_type: $("#editType").val(),
+				 w_status: $("#editStatus").val(),
+				 w_image: $("#editPicture").val(),
+				 w_tel: $("#editTel").val(),
+				 memo: $("#editMemo").val(),
+				 oper: oper
+			 };
+			 
+			 $.ajax({
+				async: false,
+				type: "POST",
+				url: "../WorkerManager/doPost.do",
+				data: AddInfo,
+				success: function(data) {
+						    var status = data.status;
+						    if (status == "ok") {				    					 			    					 
+						    	alert("添加数据成功！");	    					
+							}else{
+								alert("添加数据失败！"); 
+							}
+				   		}		
+		      });
+			 m1.hide();
+			 
+			  $("#jqGridWork").jqGrid('setGridParam',{
+	 		  	url:"../WorkerManager/doPost.do?username="+ GetQueryString("name")
+	 		  }).trigger('reloadGrid'); 
+ 	   }
+		
+		/*function refreshConstruction(mode) {
+			var c_nameSel = $("select#c_name");
+			var qsn = snSelected;
+			
+			$.get("../ConstructionManager/doGet.do?username="+inputName, function(str) {
+				c_nameSel.empty();
+				c_nameSel.append(str);
+		        	
+				if (mode == "edit" && qsn != undefined) {
+		        	$.get("../ConstructionManager/doGet.do?sn=" + qsn, function(str) {
+		        		c_nameSelected = str;
+		   				companySel.val(c_nameSelected);
+				    });
+		        }
+			});				
+		}*/
+		
+		function rowClicked(rowid, icol, cellCont) {
+			var rowData = $("#jqGridWork").jqGrid("getRowData",rowid);
+			w_sn = rowData.sn;
+			id = rowData.id;
+			//根据工人sn获取施工队名称
+			$.ajax({
+				 async: false,
+				 type: "GET",
+				 url: "../ConstructionManager/doGet.do?w_sn=" + w_sn,
+				 success: function(data) {
+	  				con_name = data;
+				 }
+	        });
+			
+			m1 = new MyModal.modal(function() {
+				  
+			  });
+			
+		/*	m2 = new MyModal.modal(function() {
+				
+			});*/
+			
+			$("#IdPicture").css('display','none');
+			$("#IdDev").css('display','block');
+			$("#del").css('display','block');	
+			$("#edit").css('display','block');
+			$("#add").css('display','none');
+			
+			$("#editName").val(rowData.name);
+			var e_dev = rowData.deveui;
+			e_dev = e_dev.substr(12);
+			
+			$("#editDeveui").val(e_dev);
+			$("#editTel").val(rowData.tel);
+			$("#editMemo").val(rowData.memo);
+			
+			var select1 = document.getElementById("editCon");
+			for(var i = 0; i < select1.options.length; i++) {  
+			    if(select1.options[i].innerHTML == rowData.type){  
+			        select1.options[i].selected = true;  
+			        break;  
+			    }  
+			} 
+			
+			var select2 = document.getElementById("editType");
+			for(var i = 0; i < select2.options.length; i++) {  
+			    if(select2.options[i].innerHTML == rowData.type){  
+			        select2.options[i].selected = true;  
+			        break;  
+			    }  
+			}  
+			
+			var select3 = document.getElementById("editStatus");
+			for(var i = 0; i < select3.options.length; i++) {  
+			    if(select3.options[i].innerHTML == rowData.status){  
+			        select3.options[i].selected = true;  
+			        break;  
+			    }  
+			}  
+			
+			m1.show();
+		}
+		
+		function editOper() {
+			conSn();
+			oper = "edit";
+			var EditInfo = {
+				 w_id: id,
+				 workname: $("#editName").val(),
+				 c_sn: c_sn,
+				 w_type: $("#editType").val(),
+				 w_status: $("#editStatus").val(),
+				 w_tel: $("#editTel").val(),
+				 deveui: $("#editDeveui").val(),
+				 memo: $("#editMemo").val(),
+				 oper: oper
+			};
+				 
+			 $.ajax({
+				async: false,
+				type: "POST",
+				url: "../WorkerManager/doPost.do",
+				data: EditInfo,
+				success: function(data) {
+					       var status = data.status;
+						    if (status == "ok") {				    					 			    					 
+						    	alert("更新数据成功！");	    					
+							}else{
+								alert("更新数据失败！");
+							}
+				   		}		
+		      });
+			m1.hide();
+			
+			$("#jqGridWork").jqGrid('setGridParam',{
+ 				url:"../WorkerManager/doPost.do?username="+ GetQueryString("name")
+ 			}).trigger('reloadGrid');
+		}
+		
+		
+		//用于触发删除事件
+		function delOper() {
+			oper = "del";
+			var DelInfo = {
+				id: id,
+				oper: oper
+			};
+			$.ajax({
+				async: false,
+				type: "POST",
+				url: "../WorkerManager/doPost.do",
+				data: DelInfo,
+				success: function(data) {
+							var status = data.status;
+						    if (status == "ok") {				    					 			    					 
+						    	alert("删除数据成功！");
+							}else{
+								alert("删除数据失败！");
+							} 
+				   		}		
+		      });
+			m1.hide();
+			
+			$("#jqGridWork").jqGrid('setGridParam',{
+ 				url:"../WorkerManager/doPost.do?username="+ GetQueryString("name")
+ 			}).trigger('reloadGrid');
+		}
+		
+		/*function validBeforeSubmit(postData, formid) {
+			 var qname = $("#c_name").val();
+			 
+			 $.ajax({
+				 async: false,
+				 type: "GET",
+				 url: "../ConstructionManager/doGet.do?c_name=" + qname,
+				 success: function(data) {
+	  				postData.c_name = eval("(" + data + ")");
+				 }
+	         });
+			 return [true,"success"];
+		 }*/
+		
+		jQuery("#jqGridWork").jqGrid({
+	        url:"../WorkerManager/doPost.do?username="+inputName,
+	        datatype: "json",
+	        mtype:"POST",
+	        height: 'auto',
+    		autowidth:true,
+	        colNames:[ '工人ID', '姓名','编号','工种','设备号','联系电话','状态','备注'], 
+	        colModel:[
+				{name:"id",index:"id", width:50,align:"center",editable:true, hidden:true},
+	            {name:"name",index:"name", width:300, align:"center",editable:true},
+	            {name:"sn",index:"sn", width:300, align:"center",editable:false},
+	            {name:"type",index:"type",width: 50, align:"center",editable:true},
+	            {name:"deveui",index:"deveui", width:300, align:"center",editable:false},
+	            {name:"tel",index:"tel", width:200, align:"center",editable:true},
+	            {name:"status",index:"status",width: 50, align:"center",editable:true},
+	            {name:"memo",index:"memo", width:300, align:"center",editable:true}
+	        ],
+	        pager:"#jqGridPagerWork",
+	        onCellSelect:rowClicked,
+	        rowNum: 8,  //设置行数
+	        viewrecords:true,//总记录数
+	        caption: "工人信息", 
+	        jsonReader:{
+	           repeatitems:false
+	        },
+	        editurl:"../WorkerManager/doPost.do"
+	    });
+		
+		/*jQuery("#jqGridWork").jqGrid('navGrid', '#jqGridPagerWork',{
+      	   //reloadAfterSubmit : true,
+           //closeAfterEdit:true,
+           closeOnEscape:true,
+        });*/
+	</script>
+</body>
+</html>

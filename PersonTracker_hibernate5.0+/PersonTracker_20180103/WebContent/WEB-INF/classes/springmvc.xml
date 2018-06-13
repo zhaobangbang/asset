@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                           http://www.springframework.org/schema/mvc 
+                           http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context-4.0.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+<!-- 注解开发：让spring扫描注解,扫描多个包-->
+<context:component-scan base-package="com.lansitec.servlets"></context:component-scan>
+<context:component-scan base-package="com.lansitec.app.httpReq"></context:component-scan>
+<!--mvc:annotation-driven作用：1.创建RequestMappingHandlerMapping的实例和 RequestMappingHandlerAdapter的实例
+                             2.对json的支持
+    -->
+<mvc:annotation-driven>
+  <!-- 决解@ResponseBody返回汉字乱码问题,出现乱码原因：spring mvc使用的默认处理字符串编码为ISO-8859-1 -->
+  <mvc:message-converters register-defaults="true">  
+        <bean class="org.springframework.http.converter.StringHttpMessageConverter">  
+        
+            <property name="supportedMediaTypes" value = "text/html;charset=UTF-8"/> 
+        </bean>  
+        <!-- 对日期进行转化的   org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+            <bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+                <property name="objectMapper">
+                    <bean class="com.lansitec.util.CustomObjectMapper">
+                        <property name="dateFormat">
+                            <bean class="java.text.SimpleDateFormat">
+                                <constructor-arg type="java.lang.String" value="yyyy-MM-dd HH:mm:ss" />
+                            </bean>
+                        </property>
+                    </bean>
+                </property>
+            </bean>
+            -->
+    </mvc:message-converters>  
+</mvc:annotation-driven>
+<!-- 启动Spring MVC的注解功能，完成请求和注解POJO的映射 
+   <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" /> 
+-->     
+<!-- 配置注解使用的处理器映射器,不出现汉字乱码问题
+<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping"></bean>
+ -->  
+<!-- 配置注解使用的处理器适配器,不出现汉字乱码问题     用到两个jar包：jackson-core-asl-1.9.13.jar, jackson-mapper-asl-1.9.13.jar 配置springmvc对json的支持
+<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+  <property name="messageConverters">
+    <bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter"></bean>
+  </property>
+</bean>
+-->
+<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+  <property name="prefix" value="/"></property>
+  <property name="suffix" value=".jsp"></property>
+</bean>
+</beans>
