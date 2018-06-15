@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2018-5-24 17:47:24 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+    <class name="com.lans.dao.beans.BlueToothBraceletData" table="bluetoothbract_tbl">
+        <id name="id" type="java.lang.Integer">
+            <column name="ID" />
+            <generator class="native"/>
+        </id>
+        <property name="deveui" type="java.lang.String">
+            <column name="DEVEUI" />
+        </property>
+        <property name="step" type="java.lang.String">
+            <column name="STEP" />
+        </property>
+        <property name="caloric" type="java.lang.String">
+            <column name="CALORIC" />
+        </property>
+        <property name="gpsLat" type="float">
+            <column name="GPSLAT" />
+        </property>
+        <property name="gpsLong" type="float">
+            <column name="GPSLONG" />
+        </property>
+        <property name="heartBeat" type="short">
+            <column name="HEARTBEAT" />
+        </property>
+        <property name="systolicPressure" type="short">
+            <column name="SYSTOLICPRESSURE" />
+        </property>
+        <property name="diastolicPressure" type="short">
+            <column name="DIASTOLICPRESSURE" />
+        </property>
+        <property name="distance" type="java.lang.String">
+            <column name="DISTANCE" />
+        </property>
+        <property name="time" type="java.util.Date">
+			<column name="TIME" />
+		</property>
+		<property name="battery" type="java.lang.String">
+            <column name="BATTERY" />
+        </property>
+        <property name="rssi" type="java.lang.Short">
+			<column name="RSSI" />
+		</property>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Expires" content="-1">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+<script src="../js/jquery-3.1.0.min.js"></script>
+<script src="../js/grid.locale-cn.js"></script>
+<script src="../js/jquery.jqGrid.min.js"></script>
+<link rel="stylesheet" type="text/css" media="screen"
+	href="../css/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" media="screen"
+	href="../css/ui.jqgrid.css" />
+<link rel="SHORTCUT ICON" href="../images/favicon.ico" />
+<title>Beacon管理</title>
+<style>
+html, body {
+	font-size: 75%;
+}
+
+.name1 {
+	color: #fff;
+	font: 13px/20px Georgia, "Times New Roman", Times, serif;
+	text-decoration: none;
+}
+
+.navbar-nav>li {
+	margin-right: 20px;
+	margin-top: 15px;
+}
+
+.btn-info {
+	background-color: rgba(6, 131, 187, 0.6);
+	border-color: rgba(6, 131, 187, 0.6);
+}
+
+.btn-info:hover {
+	background-color: #3F304F;
+	border-color: #3F304F;
+}
+</style>
+</head>
+<body style="height: 100%; position: relative;">
+
+	<table id="jqGridDev"></table>
+	<div id="jqGridPagerDev"></div>
+
+	<script type="text/javascript">
+
+
+/*围栏信息被修改，需要更新电子围栏*/
+function validBeforeSubmit(postData, formid) {
+	return [true,"success"]; 
+}
+var mapSelected = null;
+var owner = null;
+function rowClicked(rowid, icol, cellCont) {
+	var rowData = $("#jqGridDev").jqGrid("getRowData",rowid);
+	
+	mapSelected = rowData.flor;
+	owner = rowData.owner;
+}
+function refreshMap(mode) {
+	//encodeURIComponent(citySelect,'UTF-8')
+	$.get("../MapManager.do?name="+owner+"&date="+new Date(), function(str) {
+                var mapSel = $("select#flor");
+                mapSel.empty();
+                mapSel.append("<option value=' '>无</option>");
+                mapSel.append(str);
+                
+                if (mode == "edit") {
+                	mapSel.val(mapSelected);
+	            }
+            }
+       );
+}
+	function GetQueryString(name) {
+	   var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+	   var r = window.location.search.substr(1).match(reg);
+	   if (r!=null) return (r[2]); return null;
+	}
+	
+    jQuery("#jqGridDev").jqGrid({
+        url:"../PositionManager.do?name="+GetQueryString("name"),
+        datatype: "json",
+        mtype:"POST",
+        height:"auto",
+        autowidth: true,  
+        colNames:[ 'ID', 'Major','Minor','所有者','所在地图','位置类型','经度','纬度','平面x','平面y','1米场强','2米场强','系数a','系数n','描述'],
+        colModel:[
+			{name:"id",index:"id", align:"center",editable:false, hidden:true},
+            {name:"major",index:"major",align:"center",editable:true},
+            {name:"minor",index:"minor",align:"center",editable:true},
+            {name:"owner",index:"owner",align:"center",editable:true},
+			{name:"flor",index:"flor",align:"center",editable:true,edittype:"select", editoptions:{value: ":"}},
+            {name:"postype",index:"postype",align:"center",editable:true,edittype:"select", editoptions:{value: {'室内': '室内','室外':'室外','楼道':'楼道'}}},       
+            {name:"longi",index:"longi",align:"center",editable:true},
+            {name:"lati",index:"lati",align:"center",editable:true},
+            {name:"x",index:"x", align:"center",editable:true, hidden:true},
+            {name:"y",index:"y", align:"center",editable:true, hidden:true},
+            {name:"rssi1",index:"rssi1",align:"center",editable:true},
+            {name:"rssi2",index:"rssi2",align:"center",editable:true},            
+            {name:"a",index:"x",align:"center",editable:false},
+            {name:"n",index:"n",align:"center",editable:false},
+            {name:"description",index:"description",align:"center",editable:true}
+          ],
+        pager:"#jqGridPagerDev",
+        //rowNum: 20,  //设置行数
+        viewrecords:true,//总记录数
+        caption: "蓝牙信标",
+        onCellSelect:rowClicked,       
+        jsonReader:{
+            repeatitems:false
+            },
+        editurl:"../PositionManager.do?name="+GetQueryString("name"),
+        cellEdit: false,
+        cellurl: "../PositionManager.do?name="+GetQueryString("name"),
+        multiselect: true,
+        sortable: true,
+        sortname: "major"
+    });
+    
+	$("#jqGridDev").jqGrid('filterToolbar', {
+        autosearch: true,
+        stringResult: false,
+        searchOnEnter: true,
+        defaultSearch: "cn",
+    });
+    
+    jQuery("#jqGridDev").jqGrid('navGrid', '#jqGridPagerDev',
+	            {edittext: '编辑', addtext: '添加', deltext: '删除', search:false
+	            },
+	            {
+	            	reloadAfterSubmit : true,
+	            	closeOnEscape:true,
+	            	beforeSubmit: validBeforeSubmit,
+	            	closeAfterEdit:true,
+	                beforeShowForm: function(formid) {
+	                	refreshMap("edit");
+	            	}
+	            },//edit options
+	            {  
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            	closeOnEscape:true,
+	            	beforeSubmit: validBeforeSubmit,
+	                closeAfterAdd:true,
+	                beforeShowForm: function(formid) {
+	                	refreshMap("add");
+	            	}
+	            },//add options
+	            {  
+	            	closeOnEscape:true,
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            }, //del options
+	            {}, //search option
+	            {}
+	    );
+    
+</script>
+</body>
+</html>

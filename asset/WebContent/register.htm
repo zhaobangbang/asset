@@ -1,0 +1,503 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>蓝思信息中心--注册</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script type="text/ecmascript" src="js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="images/login.js"></script>
+<link href="css/login2.css" rel="stylesheet" type="text/css" />
+<link rel="SHORTCUT ICON" href="images/favicon.ico" />
+
+<style type="text/css">
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p,
+	blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn,
+	em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup,
+	tt, var, b, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label,
+	legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside,
+	audio, canvas, details, figcaption, figure, footer, header, hgroup,
+	mark, menu, meter, nav, output, progress, section, summary, time, video
+	{
+	margin: 0;
+	padding: 0;
+}
+
+from {
+	display: block;
+	margin-top: 0em;
+}
+
+html {
+	display: block;
+}
+
+body {
+	background: #f5f5f5;
+	font: 12px/1.5 Tahoma, Arial, "微软雅黑", Helvetica, sans-serif;
+}
+
+#Header {
+	background: #e8e8e8;
+	padding: 10px 0;
+	width: 100%;
+}
+
+#Header .header-content {
+	margin: 0 auto;
+	width: 700px;
+}
+
+#Header .header-content .switch-login {
+	color: #7d7d7d;
+	float: right;
+	font-size: 14px;
+	line-height: 48px;
+}
+
+#Header .logo {
+	background: url(images/logo.png);
+	height: 48px;
+	margin-right: 25px;
+	width: 168px;
+}
+
+#Header .header-content .switch-login, .page-title, .logo {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+#Header .header-content .page-title {
+	border-left: 1px solid #929292;
+	color: #222;
+	font-size: 20px;
+	height: 30px;
+	line-height: 30px;
+	padding-left: 25px;
+}
+
+a {
+	color: #333;
+	text-decoration: none;
+}
+
+.jump {
+	font-size: 14px;
+	text-align: center;
+	margin: 200px;
+	display: none;
+}
+
+.jump a {
+	color: #4169e1;
+}
+
+#register {
+	position: relative;
+	width: 980px;
+	margin: auto;
+	min-width: 760px;
+	text-align: left;
+	zoom: 1;
+}
+
+.wrap-content {
+	margin: 72px auto 0;
+	width: 700px;
+}
+
+.content-title {
+	background: #fff;
+	border-bottom: 2px solid #f5f5f5;
+	color: #222;
+	font-size: 20px;
+	padding: 20px;
+	text-align: center;
+}
+
+.content-main {
+	background: #fff;
+	overflow: hidden;
+}
+
+.con-wrap {
+	margin: 0 auto;
+	padding: 50px 0;
+}
+
+.update-tip {
+	font-size: 14px;
+	margin: 0 auto 20px;
+	padding-left: 5px;
+	width: 370px;
+}
+
+.register-form ul {
+	margin: 0 auto;
+	width: 370px;
+}
+
+.register-form .reg-item {
+	display: inline-block;
+	width: 100%;
+}
+
+.gray-outline {
+	border: 1px solid #e6e6e6;
+	border-radius: 3px;
+}
+
+li {
+	list-style: none;
+}
+
+li {
+	display: list-item;
+	text-align: -webkit-match-parent;
+}
+
+.input-bg {
+	display: inline-block;
+	height: 42px;
+	margin: 0;
+	vertical-align: middle;
+	width: auto;
+}
+
+.outline-input {
+	border: 0;
+	color: gray;
+	font-size: 14px;
+	height: 21px;
+	line-height: 21px;
+	margin: 4px;
+	outline: none;
+	padding: 6px 7px;
+}
+
+.text-user, .text-passwd, .text-passwd2, .text-tel, .text-uid,
+	.text-city, .text-email, .text-pkey {
+	width: 318px;
+}
+
+.text-city {
+	box-sizing: content-box;
+}
+
+.tip-info {
+	font-size: 14px;
+	color: red;
+	display: block;
+	height: 20px;
+	margin: 7px 0;
+}
+
+.register-form .reg-item {
+	display: inline-block;
+	width: 100%;
+}
+
+.register-form .check-account {
+	margin-top: 50px;
+}
+
+.reg-btn {
+	background: #22ac69;
+	border-radius: 4px;
+	color: #fff;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 700;
+	height: 40px;
+	line-height: 40px;
+	text-align: center;
+	width: 100%;
+	box-sizing: content-box;
+}
+
+body #ft {
+	margin-top: 50px;
+	padding: 0 0 10px;
+	text-align: center;
+	font-size: 14px;
+}
+
+#ft .links a {
+	text-decoration: none;
+}
+
+#ft .links a:hover {
+	color: red;
+	text-decoration: underline;
+}
+
+#ft, #ft a {
+	color: #999;
+}
+</style>
+
+<script type="text/javascript">
+
+ $(function(){
+	$(".reg-btn").click(function(){
+		fr = document.regform;
+				
+		if(fr.user.value == "")
+		{
+		$(".user-info").html("请输入用户名！");
+		fr.user.focus();
+		return false;
+		}
+		else{
+			$(".user-info").html("");
+		}
+		
+		if(fr.passwd.value == "")
+		{
+		$(".passwd-info").html("密码不能为空！");
+		fr.passwd.focus();
+		return false;
+		}
+		else{
+			$(".passwd-info").html("");
+		}
+		
+		if(fr.passwd.value != fr.passwd2.value)
+		{
+			$(".passwd2-info").html("两次输入的密码不一致！");
+			fr.passwd2.focus();
+			return false;
+		}
+		else{
+			$(".passwd2-info").html("");
+		}
+		
+		if(fr.tel.value == "")
+		{
+		$(".tel-info").html("手机号不能为空，将用于找回密码！");
+		fr.tel.focus();
+		return false;
+		}
+		else if(fr.tel.value.length != 11)
+		{
+			$(".tel-info").html("手机号码位数必须为11！");
+			fr.tel.focus();
+			return false;
+		}
+		else{
+			$(".tel-info").html("");
+		}
+		
+		if(fr.uid.value == "")
+		{
+		$(".uid-info").html("身份证号码不能为空，将用于找回密码！");
+		fr.uid.focus();
+		return false;
+		}
+		else{
+			var uidlen = fr.uid.value.length;
+			if(uidlen !=15 && uidlen !=18)
+			{
+			$(".uid-info").html("身份证必须为15位或18位！");
+			fr.uid.focus();
+			return false;
+			}
+			else{
+				$(".uid-info").html("");
+			}
+		}
+		
+		
+		if(fr.email.value == "")
+		{
+		$(".email-info").html("邮箱不能为空，将用来接收注册码！");
+		fr.email.focus();
+		return false;
+		}
+		else{
+			$(".email-info").html("");
+		}
+		
+		if(fr.pkey.value == "")
+		{
+		$(".pkey-info").html("注册码不能为空，请查看邮箱！");
+		fr.pkey.focus();
+		return false;
+		}
+		else{
+			$(".pkey-info").html("");
+		}
+	
+		
+		
+		var register = {
+				 user: $(".text-user").val(),
+				    passwd: $(".text-passwd").val(),
+				    tel: $(".text-tel").val(),
+				    uid: $(".text-uid").val(),
+				    email: $(".text-email").val(),
+				    pkey: $(".text-pkey").val(),
+				    city: $(".text-city").val()
+				};
+				     //调用AJAX 
+				     $.ajax(
+				    		 {
+				    			 async: false,
+				    			 type: "POST",
+				    			 url: "RegisterValidator.do?operate=register",
+				    			 data: register,
+				    			// dataType: 'json',
+				    			 success: function(data) {
+				    				 
+				    	
+				    			var status = eval("("+data+")");
+				    			
+				    				 if (status == "OK") {
+				    					 
+				    					 if($(".jump").css("display")=='none'){//如果show是隐藏的
+
+				    						 $(".jump").css("display","block");//show的display属性设置为block（显示）
+
+				    						 }  
+				    		
+				    						$("#register").css("visibility","hidden");
+				    					 
+				    					 setTimeout("window.location.href='index.jsp'",3000);
+									}
+				    			 }
+				    		 });
+		
+	});
+}); 
+
+ 
+ $(document).ready(addCity);
+ function addCity(){
+ 	var sel = document.getElementById("city");
+ 	sel.innerHTML = "";
+ 	$.ajaxSetup({
+ 		  async: false
+ 		  });
+
+ 	$.post("GetCityList.do", {type: "ALL"}, function(data){	
+ 			var cityArray = eval("(" + data + ")");
+
+ 			for(var cityNumber=0; cityNumber<cityArray.length; cityNumber++)
+ 			{
+ 				var option = document.createElement("option");
+ 				option.setAttribute("value",cityArray[cityNumber]);//设置option属性值
+ 				option.appendChild(document.createTextNode(cityArray[cityNumber]));
+ 				sel.appendChild(option);
+ 			}
+ 		});
+ }
+</script>
+
+
+
+
+
+
+</head>
+
+<body>
+	<div class="marks"></div>
+	<div id="Header">
+		<div class="header-content">
+			<span class="switch-login"> <a
+				href="http://www.lansitec.com/asset" title="登录" target="_blank">登录</a>
+				<span>|</span> <a href="register.htm" title="登录">注册</a>
+
+			</span> <a href="http://www.lansitec.com" title="蓝思信息科技"> <span
+				class="logo"> </span>
+			</a> <span class="page-title"> <a href="#" title="注册">注册</a>
+			</span>
+		</div>
+	</div>
+	<!--通用顶部导航结束-->
+
+	<div class="jump">
+
+		<a href="index.jsp">3s后将自动跳转到登陆界面，若未跳转，请点击链接跳转······</a>
+
+	</div>
+	<div id="register">
+		<div class="wrap-content">
+			<div class="content-title">注册蓝思账号</div>
+			<div class="content-main">
+				<div class="con-wrap">
+					<form class="register-form" name="regform">
+						<ul>
+							<li class="reg-item gray-outline"><span class="input-bg">
+									<input type="text" name="user" class="outline-input text-user"
+									placeholder="用户名">
+							</span></li>
+							<li class="tip-info user-info"></li>
+							<li class="reg-item gray-outline"><span class="input-bg">
+									<input type="password" name="passwd"
+									class="outline-input text-passwd" placeholder="密码">
+							</span></li>
+							<li class="tip-info passwd-info"></li>
+							<li class="reg-item gray-outline"><span class="input-bg">
+									<input type="password" name="passwd2"
+									class="outline-input text-passwd2" placeholder="确认密码">
+							</span></li>
+							<li class="tip-info passwd2-info"></li>
+							<li class="reg-item gray-outline"><span class="input-bg">
+									<input type="text" name="tel" class="outline-input text-tel"
+									placeholder="手机号">
+							</span></li>
+							<li class="tip-info tel-info"></li>
+							<li class="reg-item gray-outline"><span class="input-bg">
+									<input type="text" name="uid" class="outline-input text-uid"
+									placeholder="身份证">
+							</span></li>
+							<li class="tip-info uid-info"></li>
+							<li class="reg-item gray-outline"><span class="input-bg">
+									<select id="city" name="city" class="outline-input text-city"></select>
+							</span></li>
+							<li class="tip-info city-info"></li>
+							<li class="reg-item gray-outline"><span class="input-bg">
+									<input type="text" name="email"
+									class="outline-input text-email" placeholder="邮箱">
+							</span></li>
+							<li class="tip-info email-info"></li>
+							<li class="reg-item gray-outline"><span class="input-bg">
+									<input type="text" name="pkey" class="outline-input text-pkey"
+									placeholder="注册码">
+							</span></li>
+							<li class="tip-info pkey-info"></li>
+
+							<li class="reg-item"><input type="button"
+								class="reg-btn check-account" value="注册"></li>
+						</ul>
+					</form>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<div id="ft">
+		<div class="links">
+			<a rel="nofollow" target="_blank"
+				href="http://www.lansitec.com/html/about.html"> 关于我们 </a> | <a
+				rel="nofollow" target="_blank"
+				href="http://www.lansitec.com/html/contactus.html"> 联系我们 </a> | <a
+				rel="nofollow" target="_blank"
+				href="http://www.lansitec.com/html/joinus.html"> 人才招聘 </a> | <a
+				target="_blank" href="http://www.lansitec.com/html/partners.html">
+				合作伙伴 </a>
+
+
+
+
+
+		</div>
+		<p>Copyright©2018</p>
+		<p>All Rights Reserved 南京蓝思信息科技有限公司</p>
+		<P>苏ICP备16022777号-1</P>
+
+
+	</div>
+</body>
+</html>

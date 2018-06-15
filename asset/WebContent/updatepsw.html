@@ -1,0 +1,380 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>蓝思信息中心--新密码</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script type="text/ecmascript" src="js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="images/login.js"></script>
+<link href="css/login2.css" rel="stylesheet" type="text/css" />
+<link rel="SHORTCUT ICON" href="images/favicon.ico" />
+
+<style type="text/css">
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p,
+	blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn,
+	em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup,
+	tt, var, b, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label,
+	legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside,
+	audio, canvas, details, figcaption, figure, footer, header, hgroup,
+	mark, menu, meter, nav, output, progress, section, summary, time, video
+	{
+	margin: 0;
+	padding: 0;
+}
+
+from {
+	display: block;
+	margin-top: 0em;
+}
+
+html {
+	display: block;
+}
+
+body {
+	background: #f5f5f5;
+	font: 12px/1.5 Tahoma, Arial, "微软雅黑", Helvetica, sans-serif;
+}
+
+#Header {
+	background: #e8e8e8;
+	padding: 10px 0;
+	width: 100%;
+}
+
+#Header .header-content {
+	margin: 0 auto;
+	width: 700px;
+}
+
+#Header .header-content .switch-login {
+	color: #7d7d7d;
+	float: right;
+	font-size: 14px;
+	line-height: 48px;
+}
+
+#Header .logo {
+	background: url(images/logo.png);
+	height: 48px;
+	margin-right: 25px;
+	width: 168px;
+}
+
+#Header .header-content .switch-login, .page-title, .logo {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+#Header .header-content .page-title {
+	border-left: 1px solid #929292;
+	color: #222;
+	font-size: 20px;
+	height: 30px;
+	line-height: 30px;
+	padding-left: 25px;
+}
+
+a {
+	color: #333;
+	text-decoration: none;
+}
+
+.jump {
+	font-size: 14px;
+	text-align: center;
+	margin: 200px;
+	display: none;
+}
+
+.jump a {
+	color: #4169e1;
+}
+
+#updatepsw {
+	position: relative;
+	width: 980px;
+	margin: auto;
+	min-width: 760px;
+	text-align: left;
+	zoom: 1;
+}
+
+.wrap-content {
+	margin: 72px auto 0;
+	width: 700px;
+}
+
+.content-title {
+	background: #fff;
+	border-bottom: 2px solid #f5f5f5;
+	color: #222;
+	font-size: 20px;
+	padding: 20px;
+	text-align: center;
+}
+
+.content-main {
+	background: #fff;
+	overflow: hidden;
+}
+
+.con-wrap {
+	margin: 0 auto;
+	padding: 50px 0;
+}
+
+.update-tip {
+	font-size: 14px;
+	margin: 0 auto 20px;
+	padding-left: 5px;
+	width: 370px;
+}
+
+.update-psw-form ul {
+	margin: 0 auto;
+	width: 370px;
+}
+
+.update-psw-form .update-item {
+	display: inline-block;
+	width: 100%;
+}
+
+.gray-outline {
+	border: 1px solid #e6e6e6;
+	border-radius: 3px;
+}
+
+li {
+	list-style: none;
+}
+
+li {
+	display: list-item;
+	text-align: -webkit-match-parent;
+}
+
+.input-bg {
+	display: inline-block;
+	height: 42px;
+	margin: 0;
+	vertical-align: middle;
+	width: auto;
+}
+
+.outline-input {
+	border: 0;
+	color: gray;
+	font-size: 14px;
+	height: 21px;
+	line-height: 21px;
+	margin: 4px;
+	outline: none;
+	padding: 6px 7px;
+}
+
+.text-newpsw, .text-confirmpsw, .text-email, .text-uid {
+	width: 318px;
+}
+
+.tip-info {
+	font-size: 14px;
+	color: red;
+	display: block;
+	height: 20px;
+	margin: 7px 0;
+}
+
+.update-psw-form .update-item {
+	display: inline-block;
+	width: 100%;
+}
+
+.update-psw-form .check-account {
+	margin-top: 50px;
+}
+
+.updatepwd-btn {
+	background: #22ac69;
+	border-radius: 4px;
+	color: #fff;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 700;
+	height: 40px;
+	line-height: 40px;
+	text-align: center;
+	width: 100%;
+	box-sizing: content-box;
+}
+
+body #ft {
+	margin-top: 50px;
+	padding: 0 0 10px;
+	text-align: center;
+	font-size: 14px;
+}
+
+#ft .links a {
+	text-decoration: none;
+}
+
+#ft .links a:hover {
+	color: red;
+	text-decoration: underline;
+}
+
+#ft, #ft a {
+	color: #999;
+}
+</style>
+
+<script type="text/javascript">
+function GetQueryString(name) {
+	   var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+	   var r = window.location.search.substr(1).match(reg);
+	   if (r!=null) return (r[2]); return null;
+	}
+$(function(){
+	$(".updatepwd-btn").click(function(){
+		fr = document.updateform;
+		
+		
+		
+		if(fr.newpsw.value != fr.confirmpsw.value)
+		{
+			$(".confirm-info").html("两次输入的密码不一致！");
+			fr.confirmpsw.focus();
+			return false;
+		}
+		else{
+			$(".confirm-info").html("");
+		}
+		
+		
+		var updatepsw = {
+				 user: GetQueryString("name"),
+				    passwd: $(".text-confirmpsw").val()				   
+				};
+				     //调用AJAX 
+				     $.ajax(
+				    		 {
+				    			 async: false,
+				    			 type: "POST",
+				    			 url: "MyselfManager.do?operate=update",
+				    			 data: updatepsw,
+				    			// dataType: 'json',
+				    			 success: function(data) {
+				    				 
+				    	
+				    			var status = eval("("+data+")");
+				    				 if (status == "ok") {
+				    					 
+				    					 
+				    					   if($(".jump").css("display")=='none'){//如果show是隐藏的
+
+				    						 $(".jump").css("display","block");//show的display属性设置为block（显示）
+
+				    						 }  
+				    			
+				    						 $("#updatepsw").css("visibility","hidden");
+				    						
+
+				    					 setTimeout("window.location.href='index.jsp'",3000);
+				    						 
+				    					 }
+				    					
+				    					
+								}
+				    			 
+				    		 });
+		
+	});
+});
+
+</script>
+
+
+
+
+
+
+</head>
+
+<body>
+	<div class="marks"></div>
+	<div id="Header">
+		<div class="header-content">
+			<span class="switch-login"> <a
+				href="http://www.lansitec.com/asset" title="登录" target="_blank">登录</a>
+				<span>|</span> <a href="register.html" title="注册" target="_blank">注册</a>
+
+			</span> <a href="http://www.lansitec.com" title="蓝思信息科技"> <span
+				class="logo"> </span>
+			</a> <span class="page-title"> <a href="#" title="找回密码">设置新密码</a>
+			</span>
+		</div>
+	</div>
+	<!--通用顶部导航结束-->
+
+	<div class="jump">
+
+		<a href="index.jsp">3s后将自动跳转到登陆界面，若未跳转，请点击链接跳转······</a>
+
+	</div>
+
+	<div id="updatepsw">
+		<div class="wrap-content">
+			<div class="content-title">密码设置</div>
+			<div class="content-main">
+				<div class="con-wrap">
+					<form class="update-psw-form" name="updateform">
+						<p class="update-tip">请输入您的新密码</p>
+						<ul>
+							<li class="update-item gray-outline"><span class="input-bg">
+									<input type="password" name="newpsw"
+									class="outline-input text-newpsw" placeholder="新密码">
+							</span></li>
+							<li class="tip-info new-info"></li>
+							<li class="update-item gray-outline"><span class="input-bg">
+									<input type="password" name="confirmpsw"
+									class="outline-input text-confirmpsw" placeholder="确认密码">
+							</span></li>
+							<li class="tip-info confirm-info"></li>
+
+
+							<li class="update-item"><input type="button"
+								class="updatepwd-btn check-account" value="确定修改"></li>
+						</ul>
+					</form>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<div id="ft">
+		<div class="links">
+			<a rel="nofollow" target="_blank"
+				href="http://www.lansitec.com/html/about.html"> 关于我们 </a> | <a
+				rel="nofollow" target="_blank"
+				href="http://www.lansitec.com/html/contactus.html"> 联系我们 </a> | <a
+				rel="nofollow" target="_blank"
+				href="http://www.lansitec.com/html/joinus.html"> 人才招聘 </a> | <a
+				target="_blank" href="http://www.lansitec.com/html/partners.html">
+				合作伙伴 </a>
+
+
+
+
+
+		</div>
+		<p>Copyright©2018</p>
+		<p>All Rights Reserved 南京蓝思信息科技有限公司</p>
+		<P>苏ICP备16022777号-1</P>
+
+
+	</div>
+</body>
+</html>

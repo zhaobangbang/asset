@@ -1,0 +1,50 @@
+{
+    		   "type": "FeatureCollection",
+    		   "features": [
+    		    	{
+    		    		 "type": "Feature",
+    		    		  "properties": {
+    		    		  "stroke": "#0000ff",
+    		    		  "stroke-width": 1,
+    		    		  "stroke-opacity": 1,
+    		    		  "fill": "#ffffff",
+    		    		  "fill-opacity": 1,
+    		    		  "centerLong": 121.566960,
+    		    		  "centerLati": 31.210920,
+    		    		  "mapType": "svg",
+    		    		  "srcSvg": "http://www.lansitec.com/map/MWC.svg",
+    		    		  "sw_lati": 31.210890837212434,
+    		    		  "sw_long": 121.566918,
+    		    		  "ne_lati": 31.210959,
+    		    		  "ne_long": 121.56705177517461
+    		    		  },
+    		    		  "geometry": {
+    		    		     "type": "Polygon",
+    		    		     "coordinates": [
+    		    		           [
+    		    		             [
+    		    		               121.566918,
+    		    		               31.210959
+    		    		             ],
+    		    		             [
+    		    		               121.56705177517461,
+    		    		               31.210959 
+    		    		             ],
+    		    		             [
+    		    		               121.56705177517461,
+    		    		               31.210890837212434 
+    		    		             ],
+    		    		             [
+    		    		               121.566918,
+    		    		               31.210890837212434
+    		    		             ],
+    		    		             [
+    		    		               121.566918,
+    		    		               31.210959
+    		    		             ]
+    		    		           ]
+    		    		         ]
+    		    		       }
+    		    	}
+    	]
+  }

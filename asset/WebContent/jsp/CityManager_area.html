@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Expires" content="-1"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Cache-control" content="no-cache"/>
+<meta http-equiv="Cache" content="no-cache"/>
+<!-- The jQuery library is a prerequisite for all jqSuite products -->
+<script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+<!-- We support more than 40 localizations -->
+<script type="text/javascript" src="../js/grid.locale-cn.js"></script>
+<script type="text/javascript" src="../js/jquery.jqGrid.min.js"></script>
+
+<!-- This is the localization file of the grid controlling messages, labels, etc.
+    <!-- A link to a jQuery UI ThemeRoller theme, more than 22 built-in and many more custom -->
+<link rel="stylesheet" type="text/css" media="screen"
+	href="../css/jquery-ui.css" />
+<!-- The link to the CSS that the grid needs -->
+<link rel="stylesheet" type="text/css" media="screen"
+	href="../css/ui.jqgrid.css" />
+<link rel="SHORTCUT ICON" href="../images/favicon.ico" />
+<title>二级区域管理</title>
+<style>
+html, body {
+	font-size: 75%;
+}
+</style>
+</head>
+
+<body>
+	<table id="jqGridDev"></table>
+	<div id="jqGridDevPager"></div>
+
+	<script type="text/javascript">
+	function triggerJQGridDevLoad(city) {
+		$("#jqGridDev").setCaption(city+"的二级区域").setGridParam({   
+       	 url: "../AreaManager.do?name=" + encodeURIComponent(city,'UTF-8'),  
+       	 editurl:"../AreaManager.do?name=" + encodeURIComponent(city,'UTF-8'), 
+        	datatype: "json",
+    	}).trigger('reloadGrid');
+	}
+	
+	function GetQueryString(name) {
+		   var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+		   var r = window.location.search.substr(1).match(reg);
+		   if (r!=null) return (r[2]); return null;
+		}
+
+		$(document).ready(function(){
+			var inputName = GetQueryString("name");
+			if (null == inputName) {
+				inputName = "invalid user name";
+			}
+
+	    	var url = "../UsersManager.do?type=city&name="+inputName;
+	    	$.get(url, function(data, status) {
+	    		var usrInfo = eval("(" + data + ")");
+	    		var city= usrInfo["city"];
+	    		triggerJQGridDevLoad(city);
+	    	});
+		});
+		
+    jQuery("#jqGridDev").jqGrid({
+        url:"",
+        datatype: "local",
+        mtype:"POST",
+        width: 500,
+        height: 130,
+        colNames:[ 'id','二级区域','基站数量','设备数量'],
+        colModel:[
+					{name:"id",index:"id",width:50,align:"center",editable:false,hidden:true},
+					{name:"area",index:"area", width:100, align:"center",editable:true},
+					{name:"gwnumber",index:"gwnumber", width:100, align:"center",editable:false},
+					{name:"motenumber",index:"motenumber", width:100, align:"center",editable:false},
+        ],
+        pager:"#jqGridDevPager",
+        rowNum: 8,  //设置行数
+        viewrecords:true,//总记录数
+        caption: "请选择城市",
+        jsonReader:{
+            repeatitems:false
+            },
+    });
+    
+    jQuery("#jqGridDev").jqGrid('navGrid', '#jqGridDevPager',
+            {edittext: '编辑', addtext: '添加', deltext: '删除', search:false
+            },
+            {
+            	reloadAfterSubmit : true,
+            	closeOnEscape:true,
+            	closeAfterEdit:true,
+            },//edit options
+            {  
+                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+            	closeOnEscape:true,
+                closeAfterAdd:true,
+            },//add options
+            {  
+            	closeOnEscape:true,
+                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+            }, //del options
+            {}, //search option
+            {}
+    );
+</script>
+
+</body>
+</html>

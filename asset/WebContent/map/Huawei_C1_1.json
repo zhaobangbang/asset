@@ -1,0 +1,6 @@
+{"type": "FeatureCollection","features": [
+   {"properties":
+     {"centerLong": 118.646048,"centerLati": 33.2780926,
+       "mapType": "svg","srcSvg": "https://dev.lansitec.com/map/Huawei_C1_1.svg",
+       "sw_lati": 33.27787515489824,"sw_long": 118.64542365074158,
+       "ne_lati": 33.278310175246524,"ne_long": 118.64667356014252}}]}

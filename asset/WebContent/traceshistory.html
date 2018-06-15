@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script src="js/lansIndoorMap.js"></script>
+<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" type="text/css"
+	href="css/jquery.datetimepicker.css" />
+<script src="js/jquery-1.7.2.min.js"></script>
+<script src="js/jquery.datetimepicker.full.js"></script>
+<link rel="SHORTCUT ICON" href="images/favicon.ico" />
+<style type="text/css">
+html, body, #googleMap {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+}
+
+.name1 {
+	color: #fff;
+	font: 13px/20px Georgia, "Times New Roman", Times, serif;
+	text-decoration: none;
+}
+
+.divwidth {
+	width: 100%;
+	position: absolute !important;
+	top: 186px;
+	bottom: 0px;
+	min-height: 300px;
+}
+
+#l-map {
+	height: 100%;
+	width: 78%;
+	float: left;
+	border-right: 2px solid #bcbcbc;
+}
+
+#r-result {
+	height: 100%;
+	width: 20%;
+	float: left;
+}
+
+#tracetime {
+	display: none;
+	position: absolute;
+	top: 150px;
+	left: 500px;
+	background-color: rgb(230, 244, 250);
+	width: 400px;
+	font-size: 14px;
+	font-family: "微软雅黑";
+	color: #337ab7;
+}
+
+#tracetime h1 {
+	font-size: 24px;
+	text-align: center;
+}
+
+.timeform {
+	text-align: center;
+	padding: 10px;
+	margin-bottom: 10px;
+}
+
+.timeform label {
+	font-size: 15px;
+	margin-right: 5px;
+}
+
+#one, #six, #twelve, #oneday, #timepicker1, #timepicker2 {
+	margin-bottom: 10px;
+}
+
+.navbar-nav>li {
+	margin-right: 20 px;
+	margin-top: 15px;
+}
+
+.btn-info {
+	background-color: rgba(6, 131, 187, 0.6);
+	border-color: rgba(6, 131, 187, 0.6);
+}
+
+.btn-info:hover {
+	background-color: #3F304F;
+	border-color: #3F304F;
+}
+
+.overmain {
+	visibility: visible;
+	opacity: 1;
+	transition: all 0.400s;
+	transition-delay: 0.370s;
+	width: 300px;
+}
+</style>
+
+
+
+</head>
+<body>
+	<div id="googleMap"></div>
+</body>
+<script type="text/javascript">
+var map;
+var mapcenter;
+
+var Request = new Array();
+var sName = null;
+var qdev = null;
+var dt1 = null;
+var list = null;
+
+var devArray = new Array();
+var select = null;
+var lbutton = null;
+var firstpoint = null;
+var lastpoint=null;
+
+var GPS = {
+	    PI : 3.14159265358979324,
+	    x_pi : 3.14159265358979324 * 3000.0 / 180.0,
+	    delta : function (lat, lon) {
+	        // Krasovsky 1940
+	        //
+	        // a = 6378245.0, 1/f = 298.3
+	        // b = a * (1 - f)
+	        // ee = (a^2 - b^2) / a^2;
+	        var a = 6378245.0; //  a: 卫星椭球坐标投影到平面地图坐标系的投影因子。
+	        var ee = 0.00669342162296594323; //  ee: 椭球的偏心率。
+	        var dLat = this.transformLat(lon - 105.0, lat - 35.0);
+	        var dLon = this.transformLon(lon - 105.0, lat - 35.0);
+	        var radLat = lat / 180.0 * this.PI;
+	        var magic = Math.sin(radLat);
+	        magic = 1 - ee * magic * magic;
+	        var sqrtMagic = Math.sqrt(magic);
+	        dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * this.PI);
+	        dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * this.PI);
+	        return {'lat': dLat, 'lon': dLon};
+	    },
+	     
+	    //WGS-84 to GCJ-02
+	    gcj_encrypt : function (wgsLat, wgsLon) {
+	        if (this.outOfChina(wgsLat, wgsLon))
+	            return {'lat': wgsLat, 'lon': wgsLon};
+	 
+	        var d = this.delta(wgsLat, wgsLon);
+	        return {'lat' : Number(wgsLat) + d.lat,'lon' : Number(wgsLon) + d.lon};
+	    },
+	    outOfChina : function (lat, lon) {
+	        if (Number(lon) < 72.004 || Number(lon) > 137.8347)
+	            return true;
+	        if (Number(lat) < 0.8293 || Number(lat) > 55.8271)
+	            return true;
+	        return false;
+	    },
+	    transformLat : function (x, y) {
+	        var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+	        ret += (20.0 * Math.sin(6.0 * x * this.PI) + 20.0 * Math.sin(2.0 * x * this.PI)) * 2.0 / 3.0;
+	        ret += (20.0 * Math.sin(y * this.PI) + 40.0 * Math.sin(y / 3.0 * this.PI)) * 2.0 / 3.0;
+	        ret += (160.0 * Math.sin(y / 12.0 * this.PI) + 320 * Math.sin(y * this.PI / 30.0)) * 2.0 / 3.0;
+	        return ret;
+	    },
+	    transformLon : function (x, y) {
+	        var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+	        ret += (20.0 * Math.sin(6.0 * x * this.PI) + 20.0 * Math.sin(2.0 * x * this.PI)) * 2.0 / 3.0;
+	        ret += (20.0 * Math.sin(x * this.PI) + 40.0 * Math.sin(x / 3.0 * this.PI)) * 2.0 / 3.0;
+	        ret += (150.0 * Math.sin(x / 12.0 * this.PI) + 300.0 * Math.sin(x / 30.0 * this.PI)) * 2.0 / 3.0;
+	        return ret;
+	    }
+};
+function UrlSearch() 
+{
+   var name,value; 
+   var str = location.href;  
+   var num = str.indexOf("?") 
+   str = str.substr(num+1);  
+
+   var arr = str.split("&");  
+   for(var i = 0;i < arr.length;i++){ 
+    num = arr[i].indexOf("="); 
+    if(num>0){ 
+     name = arr[i].substring(0,num);
+     value = arr[i].substr(num+1);
+     this[name] = value;
+     } 
+  } 
+} 
+
+function initialize(){
+
+	map = createLansMap("googleMap",{"id":sName,"zoom":"1"});		  
+			 
+	var googleDeveuiInfodiv = document.createElement('div');
+	var deueuiControl = new GmapDevControl(googleDeveuiInfodiv,map);
+								
+	googleDeveuiInfodiv.index=1;
+	map.controls[google.maps.ControlPosition.TOP_LEFT].push(googleDeveuiInfodiv);	
+}
+var devobj;
+var point = new Array();
+var markerfirst;
+var markerlast;
+
+$(document).ready(function(){
+	   Request = new UrlSearch(); 
+	   sName = Request.usrname;
+	   
+		 initialize();
+});
+
+function GmapDevControl(googleDeveuiInfodiv,map){
+	// 添加导航栏
+	navi = document.createElement("nav");
+	//addClass(navi, "navbar");
+	navi.setAttribute("class", "navbar");
+	navi.style.cursor = "pointer";
+	uList = document.createElement("ul");
+	//addClass(uList, "nav navbar-nav");
+	uList.setAttribute("class", "nav navbar-nav");
+	uList.style.marginTop="-15px";
+	
+	$.ajaxSetup({
+		  async: false
+		  });
+		 
+	   $.post("GetRegisterDevices.do?type=ALL&usrname="+sName, function(data){
+		devArray = eval("(" + data + ")");
+		li1 = document.createElement("li");
+		li1.style.marginTop="15px";
+		li1.style.marginLeft="2px";
+		label = document.createElement("label");
+		label.style.backgroundColor = "#5bc0de";
+		label.setAttribute("id", "devinfo");
+		label.style.color = "#fff";
+		label.style.fontSize = "16px";
+		label.style.fontFamily = "微软雅黑";
+		label.style.fontWeight = "normal";
+		label.innerHTML = "DevEUI：";
+		
+		select = document.createElement("select");
+		select.style.padding = "4px";
+		select.style.width = "150px";
+		for(var x = 0;x<devArray.length + 1;x++){
+			var option = document.createElement("option");
+			option.setAttribute("value",x);//设置option属性值
+			if(0 == x)
+				option.appendChild(document.createTextNode("Select the device"));
+			else
+			{
+				var showText = devArray[x-1];
+				
+			      if(showText == "ef010001")
+			    	  showText = "004A770211030031";
+			      else if(showText == "ef010002")
+			    	  showText = "004A770211030032";
+			      else  if(showText == "ef010003")
+			    	  showText = "004A770211030033";
+			      else  if(showText == "ef010004")
+			    	  showText = "004A770211030034";
+			      else  if(showText == "ef010005")
+			    	  showText = "004A770211030035";
+				option.appendChild(document.createTextNode(showText));
+			}
+			select.appendChild(option);//向select增加option 
+			select.options[x].disabled = false;//设置select的下拉框可以实现下拉；disabled：禁用
+			
+		}
+		//select.length = 3;//设置只能选择一个
+		select.options[0].selected = true;//设置默认选中第一个
+		select.style.padding = "4px";
+		select.style.marginTop="-15px";
+		select.onclick = function(){
+		  $.post("GetRegisterDevices.do?type=ALL&usrname="+sName, function(data){
+			  var obj = eval("(" + data + ")");
+			  for(var index=0; index < devArray.length; index++)
+              {
+					 var objIndex;
+					 for(objIndex = 0; objIndex < obj.length; objIndex++)
+					 {
+						if(devArray[index] == obj[objIndex])
+						{
+							select.options[index+1].disabled = false;
+							break;
+						}
+					 }
+					 if(objIndex == obj.length)
+						 select.options[index+1].disabled = true;
+		        }
+				  });
+		};
+		
+		li1.appendChild(label);
+		li1.appendChild(select);
+		
+		uList.appendChild(li1);
+		
+		});
+	   
+	   li2 = document.createElement("li");
+	   li2.style.marginTop="15px";
+	   li2.style.marginLeft="10px";
+	   label = document.createElement("label");
+	   label.style.backgroundColor = "#5bc0de";
+	   label.setAttribute("id", "devinfo");
+	   label.style.color = "#fff";
+	   label.style.fontSize = "16px";
+	   label.style.fontFamily = "微软雅黑";
+	   label.style.fontWeight = "normal";
+	   label.innerHTML = "Time:";
+	
+	   inputTime = document.createElement("input");
+	   var option = document.createElement("option");
+	   inputTime.setAttribute("id","time");
+	   inputTime.setAttribute("type","text");
+	   inputTime.setAttribute("placeholder","From");//placeholder
+	   inputTime.style.padding = "4px";
+	   inputTime.style.marginTop="-15px";
+	   li2.appendChild(label);
+	   li2.appendChild(inputTime);
+	   uList.appendChild(li2);
+	   
+	   $(inputTime).one("mouseover", function(){
+		   var logic = function( currentDateTime ){
+				if (currentDateTime && currentDateTime.getDay() == 6){
+					this.setOptions({
+						minTime:'11:00'
+					});
+				}else
+					this.setOptions({
+						minTime:'8:00'
+					});
+			};
+
+			$('#time').datetimepicker({
+				onChangeDateTime:logic,
+				onShow:logic
+			});
+	   });
+	   
+	   li3 = document.createElement("li");
+	   Ebutton = document.createElement("input");
+	   Ebutton.setAttribute("type", "button");
+	   Ebutton.setAttribute("value", "OK");
+	   Ebutton.style.padding = "2px";
+	   Ebutton.style.marginLeft="20px";
+	   Ebutton.setAttribute("class", "btn btn-info");
+	   li3.appendChild(Ebutton);
+	   uList.appendChild(li3);
+	
+	   googleDeveuiInfodiv.appendChild(uList);
+
+	   
+	   Ebutton.onclick = function(){
+		  if(devobj){
+			  removeMarkerandPolyline();
+		   }
+		  var time =  $("#time").val();
+		  if(select.options[0].selected){
+			  alert("Please select the device");
+			  return;
+		  }
+		  if("" == time){
+			  alert("Please select the time");
+			  return;
+		  }
+		  $.get("Googlehistorycord.do?name="+sName+"&dev="+devArray[select.value - 1]+"&dt1="+time, function(data){
+			 list = eval("(" + data + ")");
+			 if(list.length != 0){
+				 var lat,lng;
+				 var firstP, lastP;
+				 if(list[0].latidude < 1000)
+				  {
+					  var pointArray = GPS.gcj_encrypt(list[0].latitude,list[0].longitude);
+				      firstP = new google.maps.LatLng(parseFloat(pointArray.lat),parseFloat(pointArray.lon),true);				        
+				  }
+				  else
+				  {
+					  firstP = map.IndoorPointToLatLng(list[0].longitude, list[0].latitude);
+				  }
+				 if(list[list.length-1].latidude < 1000)
+				  {
+					  var pointArray = GPS.gcj_encrypt(list[list.length-1].latitude,list[list.length-1].longitude);
+				      lastP = new google.maps.LatLng(parseFloat(pointArray.lat),parseFloat(pointArray.lon),true);
+				        
+				  }
+				  else
+				  {
+					  lastP =  map.IndoorPointToLatLng(list[list.length-1].longitude, list[list.length-1].latitude);
+				  }	 
+		    	 markerfirst = new google.maps.Marker({
+						 position:firstP,
+					     map:map,
+					     label: "起点"
+				    });
+
+		    	 map.setCenter(lastP);
+		    	  markerlast = new google.maps.Marker({
+						 position: lastP,
+					     map:map,
+					     label: "终点"
+					});
+		    	  devobj = new google.maps.Polyline({
+					    strokeColor: '#0000CC',
+					    strokeWeight : 2,
+					    opacity: 0.4
+					  });
+			       devobj.setMap(map);// 画线
+					var path = devobj.getPath();
+				  for(var index=0; index<list.length;index++){
+					  var pointArray;
+					  var point;
+					  if(list[index].latidude < 1000)
+					  {
+						  pointArray = GPS.gcj_encrypt(list[index].latitude,list[index].longitude);
+					      point = new google.maps.LatLng(parseFloat(pointArray.lat),parseFloat(pointArray.lon),true);
+					        
+					  }
+					  else
+						  point = map.IndoorPointToLatLng(list[index].longitude, list[index].latitude);	
+				      path.push(point);
+				  }
+					  //Polyline 类不支持命名颜色
+			     }
+			 else{
+				 alert("No history tracker");
+                }
+	        });
+	   };
+	
+    } 
+
+
+
+function addChi(str,father,chi,idstr){                                     //给父元素标签添加子元素，并设置文本值,并添加id名
+	   var List = document.createElement(chi);
+	   List.appendChild(document.createTextNode(str));
+	   List.setAttribute("id", idstr);
+	   father.appendChild(List);
+} 
+function addEclass(ele,str){                                     //给元素添加类的方法
+	   ele.setAttribute("class", str);
+}
+function removeMarkerandPolyline(){
+	    devobj.setMap(null);
+	    point = [];
+	    markerfirst.setMap(null);
+	    markerlast.setMap(null);
+}
+</script>
+</html>
