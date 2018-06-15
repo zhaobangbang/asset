@@ -1,0 +1,9 @@
+{"valid3Points":[{"valid3points":[1,14,2]},{"valid3points":[1,13,14]},{"valid3points":[1,2,13]},{"valid3points":[2,13,14]},
+{"valid3points":[2,3,13]},{"valid3points":[2,12,13]},{"valid3points":[2,3,12]},{"valid3points":[3,12,13]},{"valid3points":[12,13,17]},
+{"valid3points":[13,16,17]},{"valid3points":[12,13,16]},{"valid3points":[12,16,17]},{"valid3points":[16,17,20]},{"valid3points":[17,19,20]},
+{"valid3points":[16,17,19]},{"valid3points":[16,19,20]},{"valid3points":[3,4,12]},{"valid3points":[3,11,12]},{"valid3points":[3,4,11]},
+{"valid3points":[4,11,12]},{"valid3points":[11,12,16]},{"valid3points":[12,15,16]},{"valid3points":[11,12,15]},{"valid3points":[11,15,16]}],
+"valid2Points":[{"valid2points":[2,3]},{"valid2points":[2,6]},{"valid2points":[3,7]},{"valid2points":[2,9]},{"valid2points":[3,10]},
+{"valid2points":[6,9]},{"valid2points":[7,10]},{"valid2points":[2,13]},{"valid2points":[13,17]},{"valid2points":[17,20]},
+{"valid2points":[3,12]},{"valid2points":[12,16]},{"valid2points":[16,19]},{"valid2points":[9,10]},{"valid2points":[4,11]},
+{"valid2points":[11,15]},{"valid2points":[15,19]},{"valid2points":[19,20]},{"valid2points":[18,20]},{"valid2points":[14,18]},{"valid2points":[1,14]}]}

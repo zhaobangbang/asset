@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+html, body, #googleMap {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+}
+</style>
+<title>中物室内地图演示</title>
+<script src="../js/lansIndoorMap.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css" />
+</head>
+<body onload="initialize()">
+	<div id="googleMap"></div>
+</body>
+
+<script type="text/javascript">
+        var map;
+        
+        function initialize()
+        {
+        	map = createLansMap("googleMap", {"id":"outdoor","zoom":2,"scale":6});
+        	setInterval("testMsg()", 5000);
+        }
+      
+//         webSocket = new WebSocket("ws://120.27.104.163/asset/NodeQueryWS.do");       
+//         webSocket.onerror = function(event) { onError(event) }; 
+//         webSocket.onopen = function(event) { onOpen(event) }; 
+//         webSocket.onmessage = function(event) { onMessage(event) }; 
+//         webSocket.onclose = function(event) { onClose(event) };
+        
+        var newMarker=null;
+        var dtime;
+       //function onMessage(event) 
+       function testMsg()
+       { /*æ¶å°serverçæ°æ®å,æ´æ°å°å¾*/
+    	   var latlng;
+          	   		
+          // var obj = eval("(" + event.data + ")");	
+		   var obj = {
+				   msgType: "INDOOR",
+				   DevEUI: "004a77",
+				   xGPS: 131,//28446420 + parseInt(10*Math.random())*1,
+				   yGPS: 33////13910241 + parseInt(10*Math.random())*1
+		   }
+           if(obj.msgType == "INDOOR")
+           {
+              if(null != newMarker)
+				newMarker.setMap(null);
+           
+		      latlng = map.IndoorPointToLatLng(obj.xGPS, obj.yGPS);		       	
+		      dtime = new Date().format("MM-dd hh:mm:ss");
+ 			  newMarker = map.AddMarker(latlng);
+              map.ListenClick(newMarker, "<div>设备：" +obj.DevEUI+"<br>时间：" + dtime + "</div>");
+ 			  
+          }
+       } 
+       function onOpen(event) 
+       {   
+    		webSocket.send("NMEzhaobangbang");
+       } 
+       function onClose(event) 
+       { 
+       	 //document.getElementById("messages").innerHTML += event.data+ "\n";
+       } 
+       function onError(event) 
+       { 
+    		if(event.data != undefined)
+    			alert("连接已断开!" + event.data);
+    		else
+    			alert("连接已断开!");
+       }	
+    </script>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Expires" content="-1">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+<script src="../js/jquery-3.1.0.min.js"></script>
+<script src="../js/grid.locale-cn.js"></script>
+<script src="../js/jquery.jqGrid.src.js"></script>
+<link rel="stylesheet" type="text/css" media="screen"
+	href="../css/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" media="screen"
+	href="../css/ui.jqgrid.css" />
+<link rel="SHORTCUT ICON" href="../images/favicon.ico" />
+<title>地图管理</title>
+<style>
+html, body {
+	font-size: 75%;
+}
+
+.name1 {
+	color: #fff;
+	font: 13px/20px Georgia, "Times New Roman", Times, serif;
+	text-decoration: none;
+}
+
+.navbar-nav>li {
+	margin-right: 20px;
+	margin-top: 15px;
+}
+
+.btn-info {
+	background-color: rgba(6, 131, 187, 0.6);
+	border-color: rgba(6, 131, 187, 0.6);
+}
+
+.btn-info:hover {
+	background-color: #3F304F;
+	border-color: #3F304F;
+}
+</style>
+</head>
+<body style="height: 100%; position: relative;">
+
+	<table id="jqGridDev"></table>
+	<div id="jqGridPagerDev"></div>
+
+	<script type="text/javascript">
+
+
+/*围栏信息被修改，需要更新电子围栏*/
+function validBeforeSubmit(postData, formid) {
+	return [true,"success"]; 
+}
+
+	function GetQueryString(name) {
+	   var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+	   var r = window.location.search.substr(1).match(reg);
+	   if (r!=null) return (r[2]); return null;
+	}
+	
+    jQuery("#jqGridDev").jqGrid({
+        url:"../MapManager.do?name="+GetQueryString("name"),
+        datatype: "json",
+        mtype:"POST",
+        height:"auto",
+        autowidth: true,  
+        colNames:[ 'ID', '所有者','地图名称',"X坐标","Y坐标","标题","缩放",'时间','描述'],
+        colModel:[
+			{name:"id",index:"id", align:"center",editable:false, hidden:true},
+            {name:"owner",index:"owner",align:"center",editable:true},
+            {name:"sn",index:"sn",align:"center",editable:true},
+            {name:"indoorX",index:"indoorX", width:90, align:"center",editable:true},
+		    {name:"indoorY",index:"indoorY", width:90, align:"center",editable:true},
+		    {name:"indoorTitle",index:"indoorTitle", width:110, align:"center",editable:true},
+		    {name:"zoom",index:"zoom", width:30, align:"center",editable:true,edittype:"select", 	editoptions:{value:"1:1;2:2;3:3;4:4"}},
+            {name:"time",index:"time",align:"center",editable:false},
+			{name:"description",index:"description",align:"center",editable:true}
+          ],
+        pager:"#jqGridPagerDev",
+        //rowNum: 20,  //设置行数
+        viewrecords:true,//总记录数
+        caption: "地图信息",
+        jsonReader:{
+            repeatitems:false
+            },
+        editurl:"../MapManager.do?name="+GetQueryString("name"),
+        cellEdit: false,
+        cellurl: "../MapManager.do?name="+GetQueryString("name"),
+        multiselect: true,
+        sortable: true,
+        sortname: "owner"
+    });
+    
+	$("#jqGridDev").jqGrid('filterToolbar', {
+        autosearch: true,
+        stringResult: false,
+        searchOnEnter: true,
+        defaultSearch: "cn",
+    });
+    
+    jQuery("#jqGridDev").jqGrid('navGrid', '#jqGridPagerDev',
+	            {edittext: '编辑', addtext: '添加', deltext: '删除', search:false
+	            },
+	            {
+	            	reloadAfterSubmit : true,
+	            	closeOnEscape:true,
+	            	beforeSubmit: validBeforeSubmit,
+	            	closeAfterEdit:true,
+	            },//edit options
+	            {  
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            	closeOnEscape:true,
+	            	beforeSubmit: validBeforeSubmit,
+	                closeAfterAdd:true,
+	            },//add options
+	            {  
+	            	closeOnEscape:true,
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            }, //del options
+	            {}, //search option
+	            {}
+	    );
+    
+</script>
+</body>
+</html>

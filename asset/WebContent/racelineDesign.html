@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="js/jquery-3.1.0.min.js"></script>
+<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript"
+	src="https://api.map.baidu.com/api?v=2.0&ak=T3esAl5i0NHA9SAEHF3dRyauqTazR2bf"></script>
+<link rel="stylesheet" type="text/css" media="screen"
+	href="css/jquery-ui.css" />
+<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet"
+	type="text/css" />
+<link rel="SHORTCUT ICON" href="images/favicon.ico" />
+<title>比赛线路设计</title>
+<style>
+body, html, #allmap {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+}
+</style>
+</head>
+<body onload="loadPoints();">
+	<table id="jqGridDev"></table>
+	<div id="jqGridPagerDev"></div>
+	<div id="allmap" class="divwidth"></div>
+
+	<script type="text/javascript">
+
+var map;
+var rightClickPoint;
+var gamename = "亚沙";
+var secondPoint = false; //是否正在确定直线的终点
+var firstPoint_lng = 0, secondPoint_lng = 0;//每条连线的起始点
+var firstPoint_lat = 0, secondPoint_lat = 0;
+var nPoint = 0;//坐标点的数目
+var points = new Array();//整个线路的坐标点
+var pointsPunch = new Array();//打卡点
+var oldpoint = -1;
+
+var xxL = 118.80290300615; //Lansitec
+var yyL = 31.982098073871; 
+
+//GPS坐标
+var gpsPoint = new BMap.Point(xxL,yyL); 
+$(document).ready(function(){
+  map = new BMap.Map("allmap",{enableMapClick:false});//禁止POI事件
+  map.addControl(new BMap.MapTypeControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT}));
+  map.addControl(new BMap.NavigationControl());
+  map.addControl(new BMap.ScaleControl());
+  map.addControl(new DevSerControl());
+  map.addControl(new LineInfoControl());
+  map.enableScrollWheelZoom(true);
+  map.centerAndZoom(gpsPoint, 14); 
+
+  var myCity = new BMap.LocalCity();
+  function myFun(result){
+	var cityName = result.name;
+	var address = cityName;
+	
+	var myGeo = new BMap.Geocoder();
+	myGeo.getPoint(address, function(point){
+	if (point) {
+		map.centerAndZoom(point, 13);
+	}else{
+		alert("您选择地址没有解析到结果!");
+	}
+	}, cityName);
+	myCity.get(myFun);
+	
+	//创建地图右键菜单
+	var menu = new BMap.ContextMenu();
+	var txtMenuItem = [
+		{
+			text:'开始取点',
+			callback:function(){map.addEventListener("click", drawPoint);}
+		},
+		{
+			text:'停止取点',
+			callback:function(){map.removeEventListener("click", drawPoint);}
+		},
+		{
+			text:'清空绘制点',
+			callback:function(){removeAllPoints()}
+		},
+		{
+			text:'隐藏绘制点',
+			callback:function(){hideAllPoints()}
+		},		
+		{
+			text:'显示绘制点',
+			callback:function(){showAllPoints()}
+		},
+		{
+			text:'-----------',
+			callback:function(){}
+		},		
+		{
+			text:'添加标记点',
+			callback:function(){creatPunch()}
+		},
+		{
+			text:'清空标记点',
+			callback:function(){removeAllPunchs()}
+		},
+		{
+			text:'-----------',
+			callback:function(){}
+		},
+		{
+			text:'保存',
+			callback:function(){savePoints("saveDraw")}
+		},
+		{
+			text:'生成比赛路线',
+			callback:function(){savePoints("saveDrawAndGen")}
+		}
+	];
+	for(var i=0; i < txtMenuItem.length; i++){
+		menu.addItem(new BMap.MenuItem(txtMenuItem[i].text,txtMenuItem[i].callback,100));
+	}
+	map.addContextMenu(menu);
+	
+	//backdoor
+
+	var clicknum = 0;
+	map.addEventListener("rightclick", function(e){
+	        rightClickPoint = new BMap.Point(e.point.lng,e.point.lat);
+	        
+	        if(oldpoint == -1)
+	        {
+	        	oldpoint = rightClickPoint.lng;
+	        	clicknum = 1;
+	        }
+	        else if(clicknum == 1)
+	        {
+	        	if(rightClickPoint.lng > oldpoint)
+	        	{
+	        		clicknum = 2;	        		
+	        	}
+	        	else
+	        	{
+	        		oldpoint = -1;
+	        		clicknum = 0;
+	        	}
+	        }
+	        else if(clicknum == 2)
+	        {
+	        	if(rightClickPoint.lng < oldpoint)
+	        	{
+	        		clicknum = 3;
+	        		oldpoint = rightClickPoint.lng;
+	        	}
+	        	else
+	        	{
+	        		oldpoint = -1;
+	        		clicknum = 0;
+	        	}
+	        }
+	        else if(clicknum == 3)
+	        {
+	        	if(rightClickPoint.lng > oldpoint)
+	        	{
+	        		clicknum = 4;	        		
+	        	}
+	        	else
+	        	{
+	        		oldpoint = -1;
+	        		clicknum = 0;
+	        	}
+	        }
+	        else if(clicknum == 4)
+	        {
+	        	if(rightClickPoint.lng < oldpoint)
+	        	{
+	        		clicknum = 5;	
+	        		oldpoint = -1;
+	        	}
+	        	else
+	        	{
+	        		oldpoint = -1;
+	        		clicknum = 0;
+	        	}
+	        }
+	        
+	        if(clicknum == 5)
+	        {
+        		oldpoint = -1;
+        		clicknum = 0;
+	        	//加载数据库中的围栏绘制点
+	       	 $.ajax(
+	         	{
+	         		async: false,
+	         		type: "GET",
+	         		url: "/rungame/rungame/pathpoint?game=" + gamename + "&where=generated",
+	         		//dataType: 'json',
+	         		success: function(data) {  	
+	         			var result = eval("("+data+")");
+	         			
+	         			/*重新初始化所有变量*/
+	         			secondPoint = false;
+	         			firstPoint_lng = 0;
+	         			secondPoint_lng = 0;
+	       			firstPoint_lat = 0; 
+	       			secondPoint_lat = 0;
+	       			nPoint = 0;
+	       			points.splice(0,points.length);
+	       			pointsPunch.splice(0,points.length);
+	         			map.clearOverlays();
+	         			
+	       			if(result.status == "0")
+	       			{
+	       				var pathlist = result.list.pathList;
+	       				var i;
+	       				for(i in pathlist)
+	       				{
+	       					var e = {};
+	       					e.point = new BMap.Point(pathlist[i].longitude,pathlist[i].latitude);
+	       					drawPoint(e);
+	       				}
+	       				
+	       				var punchlist = result.list.punchpoints;
+	       				for(i in punchlist)
+	       				{
+	       					var myIcon = new BMap.Icon("images/flag.ico", new BMap.Size(32,32));
+	       					var newpoint = new BMap.Point(punchlist[i].longitude, punchlist[i].latitude);
+	       					var marker1 = new BMap.Marker(newpoint,{icon:myIcon});  // 创建标注
+	       					
+	       					var punchPoint = {};
+	       					punchPoint.point = newpoint;
+	       					punchPoint.name = punchlist[i].name;
+	       					punchPoint.marker = marker1;
+	       					pointsPunch.push(punchPoint);
+	       					
+	       					//marker1.enableDragging();
+	       					//marker1.setLabel(new BMap.Label(punchPoint.name,{offset:new BMap.Size(20,-10)}));
+	       					//marker1.addEventListener("dragend", dragendPunch);
+	       					map.addOverlay(marker1); 
+	       					
+	       					//addPunchMenu(marker1);
+	       				}
+	       				       				
+	       				map.addEventListener("click", function(e){
+		       				 $.ajax(
+			       			         	{
+			       			         		async: false,
+			       			         		type: "GET",
+			       			         		url: "/rungame/rungame/pathpoint?oper=testPoint&game=" + gamename + "&latitude=" + e.point.lat + "&longitude=" + e.point.lng,
+			       			         		//dataType: 'json',
+			       			         		success: function(data) {  	
+			       			         			var result = eval("("+data+")");
+			       			         			alert("最短距离:" + result.distance);
+			       			         		}
+			       			         	});
+			       				});
+	       			}
+	       			else
+	       				alert("操作失败:" + result.message);
+	       			}
+	         	});	
+	        }
+		});
+	
+	map.addEventListener("tilesloaded",function(){rightClickPoint = map.getBounds().getCenter();});
+	
+  }
+});//document.ready end
+
+function LineInfoControl(){    
+    // 设置默认停靠位置和偏移量  
+    this.defaultAnchor = BMAP_ANCHOR_TOP_RIGHT;    
+    this.defaultOffset = new BMap.Size(0, 2);    
+}    
+// 通过JavaScript的prototype属性继承于BMap.Control   
+LineInfoControl.prototype = new BMap.Control();
+LineInfoControl.prototype.initialize = function(map){    
+	// 创建一个DOM元素   
+	var div = document.createElement("div");
+	label = document.createElement("label");
+	label.style.backgroundColor = "#5bc0de";
+	label.setAttribute("id", "lineinfo");
+	label.style.color = "#fff";
+	label.style.fontSize = "16px";
+
+	div.appendChild(label);
+	label.innerHTML = "赛事信息";
+	map.getContainer().appendChild(div); 
+	return div;
+}
+
+function DevSerControl(){    
+    // 设置默认停靠位置和偏移量  
+    this.defaultAnchor = BMAP_ANCHOR_TOP_LEFT;    
+    this.defaultOffset = new BMap.Size(60, 2);    
+}    
+// 通过JavaScript的prototype属性继承于BMap.Control   
+DevSerControl.prototype = new BMap.Control();
+DevSerControl.prototype.initialize = function(map){    
+	// 创建一个DOM元素   
+	var div = document.createElement("div");
+	
+	function addChi(str,father,chi,idstr){                                     //给父元素标签添加子元素，并设置文本值,并添加id名
+		   var List = document.createElement(chi);
+		   List.appendChild(document.createTextNode(str));
+		   List.setAttribute("id", idstr);
+		   father.appendChild(List);
+		}
+		function addEclass(ele,str){                                     //给元素添加类的方法
+			ele.setAttribute("class", str);
+		}
+		
+		
+	// 添加导航栏	
+		navi = document.createElement("nav");
+		addEclass(navi, "navbar");
+		navi.style.cursor = "pointer";
+		uList = document.createElement("ul");
+		addEclass(uList, "nav navbar-nav");
+		uList.style.marginTop="0px";
+		
+		
+	//绘制点操作	
+		li1 = document.createElement("li");
+		addEclass(li1, "dropdown");		
+		tbutton = document.createElement("input");
+		tbutton.setAttribute("type", "button");
+		tbutton.setAttribute("value", "绘制点");
+		tbutton.style.padding = "5px";
+		tbutton.style.margin = "0px 5px";
+		tbutton.style.fontSize = "16px";
+		tbutton.setAttribute("class", "btn btn-info dropdown-toggle");
+		tbutton.setAttribute("data-toggle", "dropdown");
+		
+
+		b1 = document.createElement("b");
+		addEclass(b1, "caret");
+		tbutton.appendChild(b1);
+		
+		uList1 = document.createElement("ul");
+		addEclass(uList1, "dropdown-menu");
+		
+		u2li1 = document.createElement("li");	
+		addChi("开始取点",u2li1,"a","ksqd");
+		uList1.appendChild(u2li1);
+		
+		$(document).on("click","#ksqd",function(){
+			map.addEventListener("click", drawPoint);
+		});
+
+		u2li2 = document.createElement("li");
+		addChi("停止取点",u2li2,"a","tzqd");
+		uList1.appendChild(u2li2);
+
+		$(document).on("click","#tzqd",function(){
+			map.removeEventListener("click", drawPoint);
+		});
+
+		u2li3 = document.createElement("li");
+		addChi("清空",u2li3,"a","qk");
+		uList1.appendChild(u2li3);
+
+		$(document).on("click","#qk",function(){
+			removeAllPoints();
+		});
+		
+		u2li4 = document.createElement("li");
+		addChi("隐藏",u2li4,"a","yc");
+		uList1.appendChild(u2li4);
+
+		$(document).on("click","#yc",function(){
+			hideAllPoints();
+		});
+		
+		u2li5 = document.createElement("li");
+		addChi("显示",u2li5,"a","xs");
+		uList1.appendChild(u2li5);
+
+		$(document).on("click","#xs",function(){
+			showAllPoints();
+		});
+		
+		li1.appendChild(tbutton);
+		li1.appendChild(uList1);		
+		uList.appendChild(li1);	
+		
+	//打卡点操作	
+		li2 = document.createElement("li");
+		addEclass(li2, "dropdown");		
+		tbutton = document.createElement("input");
+		tbutton.setAttribute("type", "button");
+		tbutton.setAttribute("value", "标记点");
+		tbutton.style.padding = "5px";
+		tbutton.style.margin = "0px 5px";
+		tbutton.style.fontSize="16px";
+		tbutton.setAttribute("class", "btn btn-info dropdown-toggle");
+		tbutton.setAttribute("data-toggle", "dropdown");
+		
+
+		b1 = document.createElement("b");
+		addEclass(b1, "caret");
+		tbutton.appendChild(b1);
+		
+		uList2 = document.createElement("ul");
+		addEclass(uList2, "dropdown-menu");
+		
+		u2li1 = document.createElement("li");	
+		addChi("添加",u2li1,"a","dktj");
+		uList2.appendChild(u2li1);
+		
+		$(document).on("click","#dktj",function(){
+			creatPunch();
+		});
+
+		u2li2 = document.createElement("li");
+		addChi("清空",u2li2,"a","dkqk");
+		uList2.appendChild(u2li2);
+
+		$(document).on("click","#dkqk",function(){
+			removeAllPunchs();
+		});
+
+		u2li3 = document.createElement("li");
+		addChi("隐藏",u2li3,"a","dkyc");
+		uList2.appendChild(u2li3);
+
+		$(document).on("click","#dkyc",function(){
+			hideAllPunchs();
+		});
+		
+		u2li4 = document.createElement("li");
+		addChi("显示",u2li4,"a","dkxs");
+		uList2.appendChild(u2li4);
+
+		$(document).on("click","#dkxs",function(){
+			showAllPunchs();
+		});
+		
+		li2.appendChild(tbutton);
+		li2.appendChild(uList2);		
+		uList.appendChild(li2);	
+	//保存按钮
+		li3 = document.createElement("li");
+		
+		lbutton = document.createElement("input");
+		lbutton.setAttribute("type", "button");
+		lbutton.setAttribute("value", "保存");
+		lbutton.style.padding = "5px";
+		lbutton.style.margin = "0px 5px";
+		lbutton.style.fontSize="16px";
+		lbutton.setAttribute("class", "btn btn-info");
+		lbutton.onclick = function(){
+			savePoints("saveDraw");
+		}
+		li3.appendChild(lbutton);		
+		uList.appendChild(li3);
+	//生成比赛路线
+		li4 = document.createElement("li");
+		
+		lbutton = document.createElement("input");
+		lbutton.setAttribute("type", "button");
+		lbutton.setAttribute("value", "生成比赛路线");
+		lbutton.style.padding = "5px";
+		lbutton.style.margin = "0px 5px";
+		lbutton.style.fontSize = "16px";
+		lbutton.setAttribute("class", "btn btn-info");
+		lbutton.onclick = function(){
+			savePoints("saveDrawAndGen");
+		}
+		li4.appendChild(lbutton);		
+		uList.appendChild(li4);	
+		
+		navi.appendChild(uList);
+		div.appendChild(navi);
+		map.getContainer().appendChild(div); 
+		return div;
+}
+function loadPoints()
+{
+	//加载数据库中的绘制点及打卡点
+	 $.ajax(
+  	{
+  		async: true,
+  		type: "GET",
+  		url: "/rungame/rungame/pathpoint?game=" + gamename,
+  		//dataType: 'json',
+  		success: function(data) {  	
+  			var result = eval("("+data+")");
+  			
+  			/*重新初始化所有变量*/
+  			secondPoint = false;
+  			firstPoint_lng = 0;
+  			secondPoint_lng = 0;
+			firstPoint_lat = 0; 
+			secondPoint_lat = 0;
+			nPoint = 0;
+			points.splice(0,points.length);
+			pointsPunch.splice(0,points.length);
+  			map.clearOverlays();
+  			
+			if(result.status == "0")
+			{
+				var pathlist = result.list.pathList;
+				var i;
+				for(i in pathlist)
+				{
+					var e = {};
+					e.point = new BMap.Point(pathlist[i].longitude,pathlist[i].latitude);
+					drawPoint(e);
+				}
+				//将起点定位地图中心点
+				if(pathlist.length > 0)
+					map.centerAndZoom(new BMap.Point(pathlist[0].longitude,pathlist[0].latitude), 14);
+				
+				var punchlist = result.list.punchpoints;
+				for(i in punchlist)
+				{
+					var myIcon = new BMap.Icon("images/flag.ico", new BMap.Size(32,32));
+					var newpoint = new BMap.Point(punchlist[i].longitude, punchlist[i].latitude);
+					var marker1 = new BMap.Marker(newpoint,{icon:myIcon});  // 创建标注
+					
+					var punchPoint = {};
+					punchPoint.point = newpoint;
+					punchPoint.name = punchlist[i].name;
+					punchPoint.marker = marker1;
+					pointsPunch.push(punchPoint);
+					
+					marker1.enableDragging();
+					marker1.setLabel(new BMap.Label(punchPoint.name,{offset:new BMap.Size(20,-10)}));
+					marker1.addEventListener("dragend", dragendPunch);
+					map.addOverlay(marker1); 
+					
+					addPunchMenu(marker1);
+				}
+				//统计线路信息
+				getLineInfo();
+			}
+			else
+				alert("操作失败:" + result.message);
+			}
+  	});	
+}
+
+//绘制坐标点
+function drawPoint(e){
+	nPoint++;
+	oldPoint = -1;
+	var marker;
+	
+	if(secondPoint == false) //如果是画直线过程中的第一点
+	{
+		firstPoint_lng = e.point.lng.toFixed(5);
+		firstPoint_lat = e.point.lat.toFixed(5);
+		secondPoint = true;
+		var tPoint = new BMap.Point(firstPoint_lng, firstPoint_lat);
+		labels = new BMap.Label("起点",{offset:new BMap.Size(20,-10)}); 
+		
+		marker = new BMap.Marker(tPoint, {title:"拖动调整线路"});
+		marker.setLabel(labels);
+		marker.enableDragging();
+		marker.addEventListener("dragend", dragend);
+		map.addOverlay(marker);
+		
+		var m_point = {};
+		m_point.index = 0;
+		m_point.flag = "起点";
+		m_point.point = tPoint;
+		m_point.labels = labels;
+		m_point.marker = marker;
+		points.push(m_point);
+	}
+	else
+	{
+		secondPoint_lng = e.point.lng.toFixed(5);
+		secondPoint_lat = e.point.lat.toFixed(5);
+
+		var tPoint = new BMap.Point(secondPoint_lng, secondPoint_lat);
+		labels = new BMap.Label("点" + nPoint,{offset:new BMap.Size(20,-10)}); 
+		marker = new BMap.Marker(tPoint, {title:"拖动调整线路"});
+		
+		marker.setLabel(labels);
+		marker.enableDragging();
+		marker.addEventListener("dragend", dragend);
+		map.addOverlay(marker);
+	    
+    	var pointA = new Array();
+    
+    	//绘制两点间的直线
+    	pointA.push(new BMap.Point(firstPoint_lng, firstPoint_lat));
+    	pointA.push(new BMap.Point(secondPoint_lng, secondPoint_lat));
+    
+    	var p_line = drawLine(pointA,"DarkBlue",3,1);
+    	map.addOverlay(p_line); // 画线 
+    	
+    	var n_point = {};
+    	n_point.index = nPoint - 1;
+    	n_point.flag = "点" + nPoint;
+    	n_point.point = tPoint;
+    	n_point.p_line = p_line; //以此点为终点的直线
+    	n_point.label = labels;
+    	n_point.marker = marker;
+		points.push(n_point);
+		points[n_point.index-1].n_line = p_line;//以此点为起点的直线
+		
+    	firstPoint_lng = secondPoint_lng; //直线画完，此点变为下次画线的起点
+    	firstPoint_lat = secondPoint_lat;    
+	}	
+	
+	//每添加一个坐标点的时候，在其上创建右键菜单
+	addMarkerMenu(marker);	
+	
+	//统计线路信息
+	getLineInfo();
+}
+function drawLine(points, color, weight, opacity)
+{
+	return new BMap.Polyline(points, {  
+    	strokeColor : color,  
+    	strokeWeight : weight,  
+    	strokeOpacity : opacity  
+	});	
+}
+//插入坐标点回掉函数
+function insertBeforeMarker(e,ee,marker){
+	var i;
+	for(i in points)
+	{
+		if(points[i].flag == marker.getLabel().content)
+		{			
+			if(i == 0)//如果是起点
+			{
+				alert("起点无法插入坐标点！");
+				return;
+			}
+			
+			//删掉以此点为终点的直线
+			map.removeOverlay(points[i].p_line);
+			
+			//在当前点后插入一个坐标点
+			var newPoint_lng = (points[i].point.lng + points[i-1].point.lng) / 2;
+			var newPoint_lat = (points[i].point.lat + points[i-1].point.lat) / 2;
+
+			var tPoint = new BMap.Point(newPoint_lng, newPoint_lat);
+			var labels = new BMap.Label("点" + Number(i-0+1),{offset:new BMap.Size(20,-10)}); 
+			var marker = new BMap.Marker(tPoint,{title:"拖动调整线路"});
+			
+			marker.setLabel(labels);
+			marker.enableDragging();
+			marker.addEventListener("dragend", dragend);
+			map.addOverlay(marker);
+		    
+	    	var pointA = new Array();
+	    
+	    	//绘制以新加点为终点的直线
+	    	pointA.push(points[i-1].point);
+	    	pointA.push(tPoint);
+	    
+	    	var p_line = drawLine(pointA,"DarkBlue",3,1);
+	    	map.addOverlay(p_line); // 画线 
+	    	
+	    	var n_point = {};
+	    	n_point.index = i;
+	    	n_point.flag = "点" + Number(i-0+1);
+	    	n_point.point = tPoint;
+	    	n_point.p_line = p_line; //以此点为终点的直线
+	    	n_point.label = labels;
+	    	n_point.marker = marker;
+
+			points[n_point.index-1].n_line = p_line;//以此点为起点的直线
+					        
+	    	//绘制以新加点为起点的直线
+	    	pointA.splice(0, pointA.length);//删除原来的点
+	    	pointA.push(tPoint);
+	    	pointA.push(points[i].point);
+	    	p_line = drawLine(pointA,"DarkBlue",3,1);
+	    	map.addOverlay(p_line); // 画线
+	    	points[i].p_line = p_line;
+	    	n_point.n_line = p_line;
+	    	
+            //更新后续点的信息
+			for(var newIndex = i; newIndex < points.length; newIndex++)
+	    	{
+    	    	points[newIndex].index = Number(points[newIndex].index) + 1;
+    	    	points[newIndex].flag = "点" + Number(points[newIndex].index -0+ 1);
+    	    	map.removeOverlay(points[newIndex].label);
+    	    	var newlabels = new BMap.Label("点" + Number(points[newIndex].index-0 + 1),{offset:new BMap.Size(20,-10)}); 
+    	    	points[newIndex].label = newlabels;
+    	    	points[newIndex].marker.setLabel(newlabels);
+	    	}
+            
+			points.splice(i, 0, n_point); //插入新的坐标点
+    	    nPoint++;
+			
+    		addMarkerMenu(marker);
+			break;
+		}
+	}
+	
+	//统计线路信息
+	getLineInfo();
+}	
+
+//删除坐标点的回掉函数
+function removeMarker(e,ee,marker){
+	var i;
+	for(i in points)
+	{
+		if(points[i].flag == marker.getLabel().content)
+		{			
+			if(i == points.length-1 && i!=0)//如果是最后一点，要更新下一次画线的起点
+			{
+				firstPoint_lng = points[i-1].point.lng;
+				firstPoint_lat = points[i-1].point.lat;
+			}
+			
+			//删掉以此点为起点和终点的直线
+			map.removeOverlay(points[i].p_line);
+			map.removeOverlay(points[i].n_line);
+			
+	    	var pointA = new Array();
+	        
+	    	//绘制两点间的直线
+	    	var curIndex = Number(points[i].index);
+	    	
+	    	if(curIndex > 0 && curIndex < points.length - 1)
+	    	{
+	    		pointA.push(points[curIndex - 1].point);
+	    		pointA.push(points[curIndex + 1].point);
+	    		var p_line = drawLine(pointA,"DarkBlue",3,1);
+	    	    map.addOverlay(p_line); // 画线
+	    	    points[curIndex-1].n_line = p_line;
+	    	    points[curIndex+1].p_line = p_line;
+	    	}	
+
+			for(var newIndex = curIndex + 1; newIndex < points.length; newIndex++)
+	    	{
+    	    	points[newIndex].index = points[newIndex].index-1;
+    	    	points[newIndex].flag = "点" + Number(points[newIndex].index-0 + 1);
+    	    	map.removeOverlay(points[newIndex].label);
+    	    	var newlabels = new BMap.Label("点" + Number(points[newIndex].index-0 + 1),{offset:new BMap.Size(20,-10)}); 
+    	    	points[newIndex].label = newlabels;
+    	    	points[newIndex].marker.setLabel(newlabels);
+	    	}
+	    	
+    	    points.splice(curIndex,1);
+    	    nPoint--;
+			break;
+		}
+	}
+	map.removeOverlay(marker);
+	
+	//统计线路信息
+	getLineInfo();
+}
+
+	
+function addMarkerMenu(marker)
+{
+	var markerMenu=new BMap.ContextMenu();
+	markerMenu.addItem(new BMap.MenuItem('删除',removeMarker.bind(marker),{width:40}));
+	markerMenu.addItem(new BMap.MenuItem('插入',insertBeforeMarker.bind(marker),{width:40}));
+	marker.addContextMenu(markerMenu);	
+}
+
+/*拖动坐标点结束后的行为*/
+function dragend(e)
+{
+	var i;
+	for(i in points)
+	{
+		if(points[i].flag == this.getLabel().content)
+		{//数组中查到所拖曳的坐标
+			points[i].point = this.point;//更新坐标
+			
+			if(i == points.length-1)//如果是最后一点，要更新下一次画线的起点
+			{
+				firstPoint_lng = this.point.lng;
+				firstPoint_lat = this.point.lat;
+			}
+			//删除拖曳之前的连线
+			map.removeOverlay(points[i].p_line);
+			map.removeOverlay(points[i].n_line);
+			
+	    	var pointA = new Array();
+	        
+	    	//绘制新的以新坐标点为起点和终点的直线
+	    	var curIndex = Number(points[i].index);
+	    	
+	    	if(curIndex == 0)
+	    	{//如果拖动的是起始点
+	    		if(points.length > 1)
+		    	{
+	    			pointA.push(points[curIndex].point);		    
+		    		pointA.push(points[curIndex + 1].point);
+		    		var p_line = drawLine(pointA,"DarkBlue",3,1);
+	    	    	map.addOverlay(p_line); // 画线
+	    	    	points[curIndex].n_line = p_line;
+	    	    	points[curIndex+1].p_line = p_line;
+		    	}
+	    	}
+	    	else
+	    	{  //绘制以新坐标点为终点的直线
+	    		pointA.push(points[curIndex  - 1].point);
+	    		pointA.push(points[curIndex].point);
+	    		var p_line = drawLine(pointA,"DarkBlue",3,1);
+	    	    map.addOverlay(p_line); // 画线
+	    	    points[curIndex-1].n_line = p_line;
+	    	    points[curIndex].p_line = p_line;
+	    	   //绘制以新坐标点为起点的直线
+	    	   if(curIndex < points.length - 1)
+	    	   {//如果是终点则跳过此段逻辑
+		    	    pointA.splice(0,pointA.length);
+		    	    pointA.push(points[curIndex].point);
+		    	    pointA.push(points[curIndex+1].point);
+		    		p_line = drawLine(pointA,"DarkBlue",3,1);
+		    	    map.addOverlay(p_line); // 画线
+		    	    points[curIndex].n_line = p_line;
+		    	    points[curIndex+1].p_line = p_line;
+	    	   }
+	    	}
+ 
+			break;
+		}
+	}
+	
+	//统计线路信息
+	getLineInfo();
+}
+
+//删除所有的绘制点及连线
+function removeAllPoints()
+{
+	var result = confirm("确定删除所有绘制点吗？");
+	if(result == false)
+		return;
+	
+	var i;
+	for(i in points)
+	{
+		map.removeOverlay(points[i].marker);
+		map.removeOverlay(points[i].n_line);
+	}
+	points.splice(0,points.length);
+	nPoint = 0;
+	secondPoint = false;
+	
+	getLineInfo();
+}
+//隐藏所有的绘制点
+function hideAllPoints()
+{
+	var i;
+	for(i in points)
+	{
+		points[i].marker.hide();
+	}
+}
+//显示所有的绘制点
+function showAllPoints()
+{
+	var i;
+	for(i in points)
+	{
+		points[i].marker.show();
+	}
+}
+//---------------打卡点操作---------------
+function creatPunch()
+{
+	var punchName = prompt("请输入标记点名称:", "");
+	
+	if(punchName == null || punchName == "")
+		return;
+	
+	var i;
+	for(i in pointsPunch)
+	{
+		if(pointsPunch[i].name == punchName)
+		{//数组中查到要删除的打卡点
+			alert("此标记点名称已存在！");
+			return;
+		}
+	}
+	
+	var myIcon = new BMap.Icon("images/flag.ico", new BMap.Size(32,32));
+	var marker1 = new BMap.Marker(rightClickPoint,{icon:myIcon});  // 创建标注
+	
+	var punchPoint = {};
+	punchPoint.point = rightClickPoint;
+	punchPoint.name = punchName;
+	punchPoint.marker = marker1;
+	pointsPunch.push(punchPoint);
+	
+	marker1.enableDragging();
+	marker1.setLabel(new BMap.Label(punchPoint.name,{offset:new BMap.Size(20,-10)}));
+	marker1.addEventListener("dragend", dragendPunch);
+	map.addOverlay(marker1); 
+	
+	addPunchMenu(marker1);
+	
+	getLineInfo();
+}
+	
+function addPunchMenu(marker)
+{
+	var markerMenu=new BMap.ContextMenu();
+	markerMenu.addItem(new BMap.MenuItem('删除标记点',removePunchMarker.bind(marker),{width:90}));
+	markerMenu.addItem(new BMap.MenuItem('更改名称',updatePunchMarker.bind(marker),{width:90}));
+	marker.addContextMenu(markerMenu);	
+}
+
+function updatePunchMarker(e,ee,marker)
+{
+    var punchName = prompt("请输入标记点名称:", "");
+	
+	if(punchName == null || punchName == "")
+		return;
+	
+	var i;
+	for(i in pointsPunch)
+	{
+		if(pointsPunch[i].name == this.getLabel().content)
+		{//数组中查到要更新的打卡点
+			pointsPunch[i].name = punchName;
+		    map.removeOverlay(this.getLabel());
+		    marker.setLabel(new BMap.Label(punchName,{offset:new BMap.Size(20,-10)}));
+			break;
+		}
+	}
+}
+
+function removePunchMarker(e,ee,marker)
+{
+	var i;
+	for(i in pointsPunch)
+	{
+		if(pointsPunch[i].name == this.getLabel().content)
+		{//数组中查到要删除的打卡点
+			pointsPunch.splice(i,1);
+		    map.removeOverlay(marker);
+			break;
+		}
+	}
+	
+	getLineInfo();
+}
+
+/*删除所有的打卡点*/
+function removeAllPunchs()
+{
+	var i;
+	for(i in pointsPunch)
+	{
+		map.removeOverlay(pointsPunch[i].marker);
+	}
+	pointsPunch.splice(0,pointsPunch.length);
+	
+	getLineInfo();
+}
+
+/*隐藏所有的打卡点*/
+function hideAllPunchs()
+{
+	var i;
+	for(i in pointsPunch)
+	{
+		pointsPunch[i].marker.hide();
+	}
+}
+
+/*显示所有的打卡点*/
+function showAllPunchs()
+{
+	var i;
+	for(i in pointsPunch)
+	{
+		pointsPunch[i].marker.show();
+	}
+}
+
+/*拖动坐标点结束后的行为*/
+function dragendPunch(e)
+{
+	var i;
+	for(i in pointsPunch)
+	{
+		if(pointsPunch[i].name == this.getLabel().content)
+		{//数组中查到所拖曳的坐标
+			pointsPunch[i].point = this.point;//更新坐标 
+			break;
+		}
+	}
+}
+
+//统计线路信息
+function getLineInfo()
+{
+	var dist = 0;
+	var distKM;
+	for(var i = 0; i < points.length - 1; i++)
+	{
+		var tPoint1 = new BMap.Point(points[i].point.lng, points[i].point.lat);
+		var tPoint2 = new BMap.Point(points[i+1].point.lng, points[i+1].point.lat);
+		
+		dist += map.getDistance(tPoint1, tPoint2);
+	}
+	if(dist < 1000)
+		distKM = dist.toFixed(1) + "米";
+	else {
+		dist = dist / 1000;
+		distKM = dist.toFixed(1) + "公里";
+	}
+	document.getElementById("lineinfo").innerHTML = "路线信息：线路总长度【" + distKM + "】, 绘制点个数【" + points.length + "】, 标记点个数【" + pointsPunch.length + "】";
+}
+
+//-----------保存所有的坐标点，打卡点--------------
+function savePoints(type)
+{
+	var i;
+	var allPoints = {};
+	var pathList=[];
+	var punchpoints=[];
+
+	var result = confirm("此操作将覆盖原有数据，确定吗？");
+	if(result == false)
+		return;
+	
+	allPoints["game"] = gamename;
+	for(i in points)
+	{
+		var obj = {};
+		obj["id"] = Number(i);
+		obj["latitude"] = Number(points[i].point.lat.toFixed(5));
+		obj["longitude"] = Number(points[i].point.lng.toFixed(5));
+		pathList.push(obj);
+	}
+	allPoints["pathList"] = pathList;
+	
+	for(i in pointsPunch)
+	{
+		var obj = {};
+		obj["latitude"] = Number(pointsPunch[i].point.lat.toFixed(5));
+		obj["longitude"] = Number(pointsPunch[i].point.lng.toFixed(5));
+		obj["name"] = encodeURI(pointsPunch[i].name);
+		punchpoints.push(obj);
+	}
+	allPoints["punchpoints"] = punchpoints;
+
+    $.ajax(
+   	{
+   		async: true,
+   		type: "POST",
+   		url: "/rungame/rungame/pathpoint?oper=" + type,
+   				
+   		data: JSON.stringify(allPoints),
+   		contentType:"application/json; charset=utf-8",
+   		//dataType: 'json',
+   		success: function(data) {  	
+   			var result = eval("("+data+")");
+			if(result.status == "0")
+				alert("操作成功!");
+			else
+				alert("操作失败:" + result.message);
+			}
+   	});	
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>蓝思信息中心--新密码</title>
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" />
+<meta content="yes" name="apple-mobile-web-app-capable" />
+
+<link href="styles/bootstrap.min.css" rel="stylesheet" />
+<link href="styles/NewGlobal.css" rel="stylesheet" />
+<link href="../css/login2.css" rel="stylesheet" type="text/css" />
+<link rel="SHORTCUT ICON" href="../images/favicon.ico" />
+
+<script type="text/ecmascript" src="../js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="../images/login.js"></script>
+<script type="text/javascript" src="Scripts/zepto.js"></script>
+
+<style type="text/css">
+from {
+	display: block;
+	margin-top: 0em;
+}
+
+html {
+	display: block;
+}
+
+body {
+	margin: 0 auto;
+	min-width: 320px;
+	max-width: 420px;
+	background: #f5f5f5;
+	font: 12px/1.5 Tahoma, Arial, "微软雅黑", Helvetica, sans-serif;
+}
+
+a {
+	color: #333;
+	text-decoration: none;
+}
+
+.jump {
+	font-size: 14px;
+	text-align: center;
+	margin: 200px;
+	display: none;
+}
+
+.jump a {
+	color: #4169e1;
+}
+
+#updatepsw {
+	position: relative;
+	width: 980px;
+	margin: auto;
+	min-width: 760px;
+	text-align: left;
+	zoom: 1;
+}
+
+.content-title {
+	background: #fff;
+	border-bottom: 2px solid #f5f5f5;
+	color: #222;
+	font-size: 20px;
+	padding: 20px;
+	text-align: center;
+}
+
+.content-main {
+	background: #fff;
+	overflow: hidden;
+}
+
+.con-wrap {
+	margin: 0 auto;
+	padding: 20px 0;
+}
+
+.update-tip {
+	font-size: 16px;
+	margin: 0 auto 20px;
+	float: center;
+	width: 60%;
+}
+
+.update-psw-form ul {
+	margin: 0 auto;
+	width: 60%;
+}
+
+.update-psw-form .update-item {
+	display: inline-block;
+	width: 100%;
+}
+
+.gray-outline {
+	border: 1px solid #e6e6e6;
+	border-radius: 3px;
+}
+
+li {
+	list-style: none;
+}
+
+li {
+	display: list-item;
+	text-align: -webkit-match-parent;
+}
+
+.input-bg {
+	display: inline-block;
+	height: 42px;
+	margin: 0;
+	vertical-align: middle;
+	width: 100%;
+}
+
+.outline-input {
+	border: 0;
+	color: gray;
+	font-size: 14px;
+	height: 22px;
+	width: 95%;
+	line-height: 22px;
+	margin: 4px;
+	outline: none;
+	padding: 6px 7px;
+}
+
+.text-newpsw, .text-confirmpsw, .text-email, .text-uid {
+	width: 100%;
+}
+
+.tip-info {
+	font-size: 14px;
+	color: red;
+	display: block;
+	height: 20px;
+	margin: 7px 0;
+}
+
+.update-psw-form .update-item {
+	display: inline-block;
+	width: 100%;
+}
+
+.update-psw-form .check-account {
+	margin-top: 20px;
+}
+
+.updatepwd-btn {
+	background: #22ac69;
+	border-radius: 4px;
+	color: #fff;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 700;
+	height: 40px;
+	line-height: 40px;
+	text-align: center;
+	width: 100%;
+	box-sizing: content-box;
+}
+
+body #ft {
+	margin-top: 50px;
+	padding: 0 0 10px;
+	text-align: center;
+	font-size: 14px;
+}
+
+#ft .links a {
+	text-decoration: none;
+}
+
+#ft .links a:hover {
+	color: red;
+	text-decoration: underline;
+}
+
+#ft, #ft a {
+	color: #999;
+}
+</style>
+
+<script type="text/javascript">
+function GetQueryString(name) {
+	   var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+	   var r = window.location.search.substr(1).match(reg);
+	   if (r!=null) return (r[2]); return null;
+	}
+$(function(){
+	$(".updatepwd-btn").click(function(){
+		fr = document.updateform;
+		if(fr.newpsw.value != fr.confirmpsw.value)
+		{
+			$(".confirm-info").html("两次输入的密码不一致！");
+			fr.confirmpsw.focus();
+			return false;
+		}
+		else{
+			$(".confirm-info").html("");
+		}
+		
+		
+		var updatepsw = {
+				 user: GetQueryString("name"),
+				    passwd: $(".text-confirmpsw").val()				   
+				};
+				     //调用AJAX 
+				     $.ajax(
+				    		 {
+				    			 async: false,
+				    			 type: "POST",
+				    			 url: "../MyselfManager.do?operate=update",
+				    			 data: updatepsw,
+				    			// dataType: 'json',
+				    			 success: function(data) {
+				    				 
+				    	
+				    			var status = eval("("+data+")");
+				    				 if (status == "ok") {
+				    					 
+				    					 
+				    					   if($(".jump").css("display")=='none'){//如果show是隐藏的
+
+				    						 $(".jump").css("display","block");//show的display属性设置为block（显示）
+
+				    						 }  
+				    			
+				    						 $("#updatepsw").css("visibility","hidden");
+				    						
+
+				    					 setTimeout("window.location.href='index.jsp'",3000);
+				    						 
+				    					 }	
+								}
+				    			 
+				    		 });
+		
+	});
+});
+
+</script>
+
+</head>
+<body>
+	<div class="header">
+		<a href="#" onClick="javascript:history.go(-1);" class="home"> <span
+			class="header-icon header-icon-home"><img
+				src="Img/icon_return.png"></span> <span class="header-name">返回</span>
+		</a>
+		<div class="title" id="titleString">设置新密码</div>
+		<span class="back"> <span class="header-name"
+			style="color: #fff; font-size: 14px;"><a href="index.jsp">登录</a>|<a
+				href="register.html">注册</a></span>
+		</span>
+	</div>
+
+	<div class="container width95 pt20" style="float: center;">
+		<div class="content-title">密码设置</div>
+		<div class="content-main">
+			<div class="con-wrap">
+				<form class="update-psw-form" name="updateform">
+					<p class="update-tip">请输入您的新密码</p>
+					<ul>
+						<li class="update-item gray-outline"><span class="input-bg">
+								<input type="password" name="newpsw"
+								class="outline-input text-newpsw" placeholder="新密码">
+						</span></li>
+						<li class="tip-info new-info"></li>
+						<li class="update-item gray-outline"><span class="input-bg">
+								<input type="password" name="confirmpsw"
+								class="outline-input text-confirmpsw" placeholder="确认密码">
+						</span></li>
+						<li class="tip-info confirm-info"></li>
+						<li class="update-item"><input type="button"
+							class="updatepwd-btn check-account" value="确定修改"></li>
+					</ul>
+				</form>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>

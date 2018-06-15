@@ -1,0 +1,6 @@
+{"type": "FeatureCollection","features": [
+   {"properties":
+     {"centerLong": 118.640763983131,"centerLati": 33.2779760616934,
+       "mapType": "svg","srcSvg": "https://dev.lansitec.com/map/demo.svg",
+       "sw_lati": 33.277798913995376,"sw_long": 118.64053666591644,
+       "ne_lati": 33.27815320939145,"ne_long": 118.64099130034447}}]}

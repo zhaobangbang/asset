@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" />
+<meta content="yes" name="apple-mobile-web-app-capable" />
+
+<!-- The jQuery library is a prerequisite for all jqSuite products -->
+<script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+<!-- We support more than 40 localizations -->
+<script type="text/javascript" src="../js/grid.locale-cn.js"></script>
+<script type="text/javascript" src="../js/jquery.jqGrid.min.js"></script>
+
+<!-- This is the localization file of the grid controlling messages, labels, etc.
+    <!-- A link to a jQuery UI ThemeRoller theme, more than 22 built-in and many more custom -->
+<link rel="stylesheet" type="text/css" media="screen"
+	href="../css/jquery-ui.css" />
+<!-- The link to the CSS that the grid needs -->
+<link rel="stylesheet" type="text/css" media="screen"
+	href="../css/ui.jqgrid.css" />
+<link href="styles/NewGlobal.css" rel="stylesheet" />
+<link rel="SHORTCUT ICON" href="../images/favicon.ico" />
+<title>网关管理</title>
+<style>
+body {
+	margin: 0 auto;
+	min-width: 320px;
+	max-width: 440px;
+	background-color: #fff;
+	color: #666;
+	background: #f5f5f5;
+	font: 12px/1.5 Tahoma, Arial, "微软雅黑 ", Helvetica, sans-serif;
+}
+</style>
+</head>
+
+<body>
+
+	<div class="header">
+		<a href="#" onClick="javascript:history.go(-1);" class="home"> <span
+			class="header-icon header-icon-home"><img
+				src="Img/icon_home.png"></span> <span class="header-name">主页</span>
+		</a>
+		<div
+			style="text-align: center; color: #fff; position: absolute; top: 15px; right: 37%; font-size: 20px;">网关管理</div>
+		<a href="#" onClick="javascript:history.go(-1);" class="back"> <span
+			class="header-icon header-icon-return"><img
+				src="Img/icon_return.png"></span> <span class="header-name">返回</span>
+		</a>
+	</div>
+
+	<div class="container width95 pt20" style="float: center;">
+		<table id="jqGridDev"></table>
+		<div id="jqGridPagerDev"></div>
+	</div>
+
+	<script type="text/javascript">
+	function GetQueryString(name) {
+	   var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)","i");
+	   var r = window.location.search.substr(1).match(reg);
+	   if (r!=null) return (r[2]); return null;
+	}
+	
+	function refreshCity(mode) {
+		$.get("../CityManager.do", function(str) {
+	            var citySel = $("select#city");
+	            citySel.empty();
+	            citySel.append(str);
+	        	
+	            if (mode == "edit") {
+	            	citySel.val(citySelected);
+	            }
+	            
+	            refreshArea(citySel.val(), mode);
+			}
+   		);
+	}
+	
+	function refreshArea(citySelect, mode) {
+		$.get("../AreaManager.do?name="+encodeURIComponent(citySelect,'UTF-8'), function(str) {
+                 var areaSel = $("select#area");
+                 areaSel.empty();
+                 areaSel.append(str);
+                 
+                 if (mode == "edit") {
+ 	            	areaSel.val(areaSelected);
+ 	            }
+             }
+        );
+	}
+	
+	var citySelected;
+	var areaSelected;
+	
+	function rowClicked(rowid, icol, cellCont) {
+		var rowData = $("#jqGridDev").jqGrid("getRowData",rowid);
+		
+		citySelected = rowData.city;
+		areaSelected = rowData.area;
+	}
+	
+    jQuery("#jqGridDev").jqGrid({
+        url:"../GateWayManager.do",
+        datatype: "json",
+        mtype:"POST",
+        width: 800,
+        height: 200,
+        colNames:[ '网关ID', 'MAC','网关名','网关IP','城市','地区','类型'],
+        colModel:[
+			{name:"id",index:"id", width:50,align:"center",editable:false, hidden:true},
+            {name:"mac",index:"mac", width:300, align:"center",editable:true},
+            {name:"name",index:"name", width:300, align:"center",editable:true},
+            {name:"ip",index:"ip", width:200, align:"center",editable:true},
+            {name:"city",index:"city", width:200, align:"center",sortable:true,editable:true,
+        		edittype:"select", editoptions:{value:":",
+        			dataEvents: [{
+        			            type: 'change', fn: function(e) {
+        			            	refreshArea(this.value); 
+        			            }
+        			           }
+        			      ]}},
+            {name:"area",index:"area", width:250, align:"center",editable:true, edittype:"select", 
+      	         editoptions:{value:":"}},
+            {name:"type",index:"type", width:300, align:"center",editable:true},
+        ],
+        pager:"#jqGridPagerDev",
+        onCellSelect:rowClicked,
+        rowNum: 8,  //设置行数
+        viewrecords:true,//总记录数
+        caption: "网关管理",
+        jsonReader:{
+            repeatitems:false
+            },
+        editurl:"../GateWayManager.do"
+    });
+    
+    jQuery("#jqGridDev").jqGrid('navGrid', '#jqGridPagerDev',
+    			{edittext: '编辑', addtext: '添加', deltext: '删除', search:false
+
+            	},
+	            {
+	            	reloadAfterSubmit : true,
+	            	closeOnEscape:true,
+	            	closeAfterEdit:true,
+	            	beforeShowForm: function(formid) {
+	                	refreshCity("edit");
+	            	}
+	            },//edit options
+	            {  
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            	closeOnEscape:true,
+	                closeAfterAdd:true,
+	                beforeShowForm: function(formid) {
+	                	refreshCity("add");
+	            	}
+	            },//add options
+	            {  
+	            	closeOnEscape:true,
+	                reloadAfterSubmit : true,//点击“提交”后重新加载表格
+	            }, //del options
+	            {}, //search option
+	            {}
+	    );
+</script>
+
+</body>
+</html>
