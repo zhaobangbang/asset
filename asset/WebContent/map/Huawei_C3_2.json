@@ -1,6 +1,0 @@
-{"type": "FeatureCollection","features": [
-   {"properties":
-     {"centerLong": 118.646582,"centerLati": 33.2785052,
-       "mapType": "svg","srcSvg": "https://dev.lansitec.com/map/Huawei_C3_2.svg",
-       "sw_lati": 33.278229449984885,"sw_long": 118.646040558815,
-       "ne_lati": 33.2787810711183,"ne_long": 118.64712417125702}}]}
