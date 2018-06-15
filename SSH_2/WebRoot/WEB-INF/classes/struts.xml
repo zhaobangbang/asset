@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+    <constant name="struts.devMode" value="true"/>
+    <package name="default"  extends="struts-default">
+         <!-- action的实例由struts来创建 -->
+         <action name="regist" class="w.j.action.UserAction" method="regist">
+                 <result name="success">/success.jsp</result>
+         </action>
+    </package>
+    
+    <package name="pq" extends="struts-default">
+      <action name="login" class="loginaction" method="login">
+           <result name="success" type="chain">showAll</result>
+      </action>
+      <action name="deleteOne" class="deleteaction" method="deleteOne">
+		   <result name="success" type="chain">showAll</result>
+		   <result name="input">/bookContent.jsp</result>
+	  </action>
+      <action name="showAll" class="showallaction" method="showAll">
+           <result name="success">/bookContent.jsp</result>
+      </action>
+      <action name="findByRelation" class="findByRelationaction" method="findByRelation">
+           <result name="success">/bookContent.jsp</result>
+      </action>
+      <action name="addContact" class="addContactaction" method="addContact">
+           <result name="success" type="chain">showAll</result>
+      </action>
+    </package>
+</struts>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/aop 
+                           http://www.springframework.org/schema/aop/spring-aop.xsd
+                           http://www.springframework.org/schema/tx 
+                           http://www.springframework.org/schema/tx/spring-tx.xsd
+                           http://www.springframework.org/schema/context 
+                           http://www.springframework.org/schema/context/spring-context.xsd">
+<!-- 创建c3p0数据源 -->
+<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+<property name="driverClass" value="com.mysql.jdbc.Driver"></property>
+<property name="jdbcUrl" value="jdbc:mysql://localhost:3306/test"></property>
+<property name="user" value="root"></property>
+<property name="password" value="3162"></property>
+</bean>
+<!-- sessionFactory -->
+<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+<property name="dataSource" ref="dataSource"></property>
+<property name="hibernateProperties">
+<props>
+		<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+      		    <prop key="javax.persistence.validation.mode">none</prop>
+      		    <prop key="hibernate.show_sql">true</prop>
+      		    <prop key="hibernate.format_sql">true</prop>
+      		    <prop key="hibernate.hbm2ddl.auto">update</prop>
+      		    <prop key="hibernate.current_session_context_class">thread</prop>
+</props>
+</property>
+ <property name="mappingLocations" value="classpath:w/j/domain/*.hbm.xml"></property>    
+</bean>
+
+<bean id="userDao" class="w.j.UserDaoImpl.UserDaoImpl">
+<property name="sessionFactory" ref="sessionFactory"></property>
+</bean>
+
+<bean id="userService" class="w.j.UserServiceImpl.UserServiceImpl">
+<property name="userDao" ref="userDao"></property>
+</bean>
+
+<bean id="txManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+<property name="sessionFactory" ref="sessionFactory"></property>
+</bean>
+
+<tx:advice id="adviceId" transaction-manager="txManager">
+<tx:attributes>
+<tx:method name="regist"/>
+<tx:method name="login"/>
+<tx:method name="deleteOne"/>
+<tx:method name="showAll"/>
+<tx:method name="addContact"/>
+<tx:method name="findByRelationaction"/>
+</tx:attributes>
+</tx:advice>
+
+<aop:config>
+	<aop:advisor advice-ref="adviceId" pointcut="execution(* w.j.UserServiceImpl.*.*(..))"/>
+</aop:config>
+
+<bean id="loginaction"   class="w.j.action.UserAction">
+<property name="userService" ref="userService"></property>
+</bean>
+
+<bean id="showallaction"   class="w.j.action.UserAction">
+<property name="userService" ref="userService"></property>
+</bean>
+
+<bean id="deleteaction"   class="w.j.action.UserAction">
+<property name="userService" ref="userService"></property>
+</bean>
+
+<bean id="findByRelationaction"   class="w.j.action.ContactAction">
+<property name="userService" ref="userService"></property>
+</bean>
+
+<bean id="addContactaction"   class="w.j.action.ContactAction">
+<property name="userService" ref="userService"></property>
+</bean>
+</beans>
